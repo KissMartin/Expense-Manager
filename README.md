@@ -1,4 +1,4 @@
-# Expenses-Calculator
+# Expenses Operator
 
 ## Project Work - Expenses Manager/Calculator
  - An application to keep track of your expenses and possible income through graphs and tables.
