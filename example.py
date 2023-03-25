@@ -46,9 +46,6 @@ class App(customtkinter.CTk):
         self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.home_frame.grid_columnconfigure(0, weight=1)
 
-        self.home_frame_large_image_label = customtkinter.CTkLabel(self.home_frame, text="")
-        self.home_frame_large_image_label.grid(row=0, column=0, padx=20, pady=10)
-
         self.home_frame_button_1 = customtkinter.CTkButton(self.home_frame, text="")
         self.home_frame_button_1.grid(row=1, column=0, padx=20, pady=10)
         self.home_frame_button_2 = customtkinter.CTkButton(self.home_frame, text="CTkButton", compound="right")

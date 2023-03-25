@@ -14,34 +14,19 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        self.nav_frame = NavFrame(self, corner_radius=0)
+        self.nav_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.nav_frame.grid(row=0, column=0, sticky="nsew")
         self.nav_frame.grid_rowconfigure(4, weight=1)
 
-        self.settings_menu = Settings(master=self)
-        self.settings_button = customtkinter.CTkButton(self, text="Settings", command=None)
-
-
-class Settings(customtkinter.CTkEntry):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        self.entry = customtkinter.CTkEntry(master=self, placeholder_text="CTkEntry")
-
-
-class NavFrame(customtkinter.CTkFrame):  # pylint: disable=abstract-method
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        self.logo_label = customtkinter.CTkLabel(self, text="Expense Operator", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
-        self.expenses_button = customtkinter.CTkButton(self, text='Expenses')
-        self.expenses_button.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-        self.charts_button = customtkinter.CTkButton(self, text='Charts')
-        self.charts_button.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-        self.settings_button = customtkinter.CTkButton(self, text='Settings')
-        self.settings_button.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-        self.logged_in_as = customtkinter.CTkLabel(self, text='Logged in as: ')
+        self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
+        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
+        self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=self.expenses_button_event)
+        self.expenses_button.grid(row=1, column=0, padx=20, pady=10, sticky="ewn")
+        self.charts_button = customtkinter.CTkButton(self.nav_frame, text='Charts', command=self.charts_button_event)
+        self.charts_button.grid(row=2, column=0, padx=20, pady=10, sticky="enw")
+        self.settings_button = customtkinter.CTkButton(self.nav_frame, text='Settings', command=self.settings_button_event)
+        self.settings_button.grid(row=3, column=0, padx=20, pady=10, sticky="ewn")
+        self.logged_in_as = customtkinter.CTkLabel(self.nav_frame, text='Logged in as: ')
         self.logged_in_as.grid(row=4, column=0, padx=20, pady=10, sticky="sw")
 
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -53,20 +38,14 @@ class NavFrame(customtkinter.CTkFrame):  # pylint: disable=abstract-method
 
         self.home_frame_button_1 = customtkinter.CTkButton(self.expenses_frame, text="")
         self.home_frame_button_1.grid(row=1, column=0, padx=20, pady=10)
-        self.home_frame_button_2 = customtkinter.CTkButton(self.expenses_frame, text="CTkButton", compound="right")
-        self.home_frame_button_2.grid(row=2, column=0, padx=20, pady=10)
-        self.home_frame_button_3 = customtkinter.CTkButton(self.expenses_frame, text="CTkButton", compound="top")
-        self.home_frame_button_3.grid(row=3, column=0, padx=20, pady=10)
-        self.home_frame_button_4 = customtkinter.CTkButton(self.expenses_frame, text="CTkButton", compound="bottom", anchor="w")
-        self.home_frame_button_4.grid(row=4, column=0, padx=20, pady=10)
 
         self.select_frame_by_name("Expenses")
 
     def select_frame_by_name(self, name):
         # set button color for selected button
-        self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "transparent")
-        self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "transparent")
-        self.settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "transparent")
+        self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
+        self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
+        self.settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "#1f6aa5")
 
         # show selected frame
         if name == "Expenses":
@@ -82,17 +61,14 @@ class NavFrame(customtkinter.CTkFrame):  # pylint: disable=abstract-method
         else:
             self.settings_frame.grid_forget()
 
-    @property
     def expenses_button_event(self):
-        self.select_frame_by_name("home")
+        self.select_frame_by_name("Expenses")
 
-    @property
     def charts_button_event(self):
-        self.select_frame_by_name("frame_2")
+        self.select_frame_by_name("Charts")
 
-    @property
     def settings_button_event(self):
-        self.select_frame_by_name("frame_3")
+        self.select_frame_by_name("Settings")
 
 
 if __name__ == "__main__":
