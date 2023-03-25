@@ -42,12 +42,11 @@ class App(customtkinter.CTk):
         self.select_frame_by_name("Expenses")
 
     def select_frame_by_name(self, name):
-        # set button color for selected button
+
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
         self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
         self.settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "#1f6aa5")
 
-        # show selected frame
         if name == "Expenses":
             self.expenses_frame.grid(row=0, column=1, sticky="nsew")
         else:
