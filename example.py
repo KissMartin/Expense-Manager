@@ -1,5 +1,4 @@
 import customtkinter
-import os
 
 
 class App(customtkinter.CTk):
