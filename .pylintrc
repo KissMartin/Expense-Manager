@@ -1,0 +1,16 @@
+[MASTER]
+disable=
+    C0114, # missing-module-docstring
+    C0116, # missing-function-docstring
+    C0115, # missing-class-docstring
+    C0103, # disable naming conv.
+    C0301, # disable line too long
+    C2401, # disable non-ascii-name 
+    R1705, # diasble no-else-return
+    C2403, # disable non-ascii-module-import
+    R0903, # disable too few public methods
+    W0640, # disable cell var from loop
+    C0111, # Missing docstring
+    W0703,  # broad-except
+    E1101, # no-member
+    C0201, # Consider iterating the dictionary directly instead of calling .keys()
