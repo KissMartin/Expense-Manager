@@ -1,5 +1,6 @@
 import customtkinter
 
+
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
 
@@ -41,7 +42,7 @@ class App(customtkinter.CTk):
 
         self.select_frame_by_name("Expenses")
 
-    def select_frame_by_name(self, name):
+    def select_frame_by_name(self, name: str):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
         self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
@@ -73,3 +74,6 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+
+# pyright: reportUnknownMemberType=false
+# pyright: reportMissingTypeStubs=false
