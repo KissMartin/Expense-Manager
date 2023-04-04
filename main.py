@@ -62,7 +62,7 @@ class App(customtkinter.CTk):
         self.settings_yearly_exp_entry = customtkinter.CTkEntry(self.settings_frame, width=200)
         self.settings_yearly_exp_entry.grid(row=5, column=0, padx=20, pady=10)
         self.settings_warning_yearly = customtkinter.CTkLabel(self.settings_frame, text="")
-        self.settings_warning_yearly.grid(row=3, column=1, padx=20, pady=10, sticky="w")
+        self.settings_warning_yearly.grid(row=5, column=1, padx=20, pady=10, sticky="w")
 
         self.settings_change = customtkinter.CTkButton(self.settings_frame, text="Change Settings", command=self.change)
         self.settings_change.grid(row=6, column=0, sticky="ws", pady=10, padx=20)
@@ -117,10 +117,11 @@ class App(customtkinter.CTk):
         }
         for entry, warning in entrys_warnings.items():
             if len(entry.get()) <= 10:
-                entry.configure(state="disabled", fg_color="#673ab7")
+                entry.configure(state="disabled", fg_color="#006600")
                 warning.configure(text="")
             else:
-                warning.configure(text="The value is too long!")
+                entry.configure(fg_color="#990000")
+                warning.configure(text="This value is too long!")
 
     # Change function for settings
     def change(self):
