@@ -19,6 +19,12 @@ class App(customtkinter.CTk):
         self.nav_frame.grid(row=0, column=0, sticky="nsew")
         self.nav_frame.grid_rowconfigure(4, weight=1)
 
+        self.settings_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.settings_frame.grid(row=0, column=0, sticky="nsew")
+        self.settings_frame.grid_rowconfigure(6, weight=1)
+        self.settings_frame.grid_rowconfigure(7, weight=0)
+
+        # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
         self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=self.expenses_button_event)
@@ -30,18 +36,49 @@ class App(customtkinter.CTk):
         self.logged_in_as = customtkinter.CTkLabel(self.nav_frame, text='Logged in as: ')
         self.logged_in_as.grid(row=4, column=0, padx=20, pady=10, sticky="sw")
 
+        # Different Frames
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.expenses_frame.grid_columnconfigure(0, weight=1)
 
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
-        self.settings_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        # Settings Frame elements
+        self.settings_income = customtkinter.CTkLabel(self.settings_frame, text="Income:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.settings_income.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+        self.settings_income_entry = customtkinter.CTkEntry(self.settings_frame, width=200)
+        self.settings_income_entry.grid(row=1, column=0, padx=20, pady=10)
+        self.settings_warning_income = customtkinter.CTkLabel(self.settings_frame, text="")
+        self.settings_warning_income.grid(row=1, column=1, padx=20, pady=10, sticky="w")
 
-        self.home_frame_button_1 = customtkinter.CTkButton(self.expenses_frame, text="")
-        self.home_frame_button_1.grid(row=1, column=0, padx=20, pady=10)
+        self.settings_monthly_exp = customtkinter.CTkLabel(self.settings_frame, text="Monthly Subscriptions:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.settings_monthly_exp.grid(row=2, column=0, padx=20, pady=10, sticky="w")
+        self.settings_monthly_exp_entry = customtkinter.CTkEntry(self.settings_frame, width=200)
+        self.settings_monthly_exp_entry.grid(row=3, column=0, padx=20, pady=10)
+        self.settings_warning_monthly = customtkinter.CTkLabel(self.settings_frame, text="")
+        self.settings_warning_monthly.grid(row=3, column=1, padx=20, pady=10, sticky="w")
 
-        self.select_frame_by_name("Expenses")
+        self.settings_yearly_exp = customtkinter.CTkLabel(self.settings_frame, text="Yearly Subscriptions:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.settings_yearly_exp.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+        self.settings_yearly_exp_entry = customtkinter.CTkEntry(self.settings_frame, width=200)
+        self.settings_yearly_exp_entry.grid(row=5, column=0, padx=20, pady=10)
+        self.settings_warning_yearly = customtkinter.CTkLabel(self.settings_frame, text="")
+        self.settings_warning_yearly.grid(row=3, column=1, padx=20, pady=10, sticky="w")
 
+        self.settings_change = customtkinter.CTkButton(self.settings_frame, text="Change Settings", command=self.change)
+        self.settings_change.grid(row=6, column=0, sticky="ws", pady=10, padx=20)
+        self.settings_apply_changes = customtkinter.CTkButton(self.settings_frame, text="Apply Changes", command=self.validate)
+        self.settings_apply_changes.grid(row=7, column=0, sticky="ws", pady=(10, 30), padx=20)
+        self.settings_apply_changes_complete = customtkinter.CTkLabel(self.settings_frame, text="")
+        self.settings_apply_changes_complete.grid(row=7, column=1, sticky="ws", pady=(10, 30), padx=10)
+
+        # self.appearance_mode_menu = customtkinter.CTkOptionMenu(self.settings_frame, values=["Light", "Dark", "System"],
+        #                                                         command=self.change_appearance_mode_event)
+        # self.appearance_mode_menu.grid(row=1, column=1, padx=20, pady=20, sticky="s")
+
+        # Default Frame (Loading Frame)
+        self.select_frame_by_name("Settings")
+
+    # Change Frame function
     def select_frame_by_name(self, name: str):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
@@ -61,6 +98,7 @@ class App(customtkinter.CTk):
         else:
             self.settings_frame.grid_forget()
 
+    # Swap Frame functions
     def expenses_button_event(self):
         self.select_frame_by_name("Expenses")
 
@@ -69,6 +107,32 @@ class App(customtkinter.CTk):
 
     def settings_button_event(self):
         self.select_frame_by_name("Settings")
+
+    # Validate fucntion for settings menu
+    def validate(self):
+        entrys_warnings = {
+            self.settings_income_entry: self.settings_warning_income,
+            self.settings_monthly_exp_entry: self.settings_warning_monthly,
+            self.settings_yearly_exp_entry: self.settings_warning_yearly
+        }
+        for entry, warning in entrys_warnings.items():
+            if len(entry.get()) <= 10:
+                entry.configure(state="disabled", fg_color="#673ab7")
+                warning.configure(text="")
+            else:
+                warning.configure(text="The value is too long!")
+
+    # Change function for settings
+    def change(self):
+        entrys = [self.settings_income_entry, self.settings_monthly_exp_entry, self.settings_yearly_exp_entry]
+        for entry in entrys:
+            if entry.cget("state") == "disabled":
+                entry.configure(state="normal")
+                entry.configure(fg_color="#343638")
+
+    # Appearance Mode function
+    # def change_appearance_mode_event(self, new_appearance_mode: str):
+    #     customtkinter.set_appearance_mode(new_appearance_mode)
 
 
 if __name__ == "__main__":
