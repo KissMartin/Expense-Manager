@@ -78,27 +78,7 @@ class App(customtkinter.CTk):
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Settings")
 
-    def change(self):
-        entrys = [self.settings_income_entry, self.settings_monthly_exp_entry, self.settings_yearly_exp_entry]
-        for entry in entrys:
-            if entry.cget("state") == "disabled":
-                entry.configure(state="normal")
-                entry.configure(fg_color="#343638")
-
     # Change Frame function
-    def validate(self):
-        entrys_warnings = {
-            self.settings_income_entry: self.settings_warning_income,
-            self.settings_monthly_exp_entry: self.settings_warning_monthly,
-            self.settings_yearly_exp_entry: self.settings_warning_yearly
-        }
-        for entry, warning in entrys_warnings.items():
-            if len(entry.get()) <= 10:
-                entry.configure(state="disabled", fg_color="#673ab7")
-                warning.configure(text="")
-            else:
-                warning.configure(text="The value is too long!")
-
     def select_frame_by_name(self, name: str):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
@@ -127,6 +107,28 @@ class App(customtkinter.CTk):
 
     def settings_button_event(self):
         self.select_frame_by_name("Settings")
+
+    # Validate fucntion for settings menu
+    def validate(self):
+        entrys_warnings = {
+            self.settings_income_entry: self.settings_warning_income,
+            self.settings_monthly_exp_entry: self.settings_warning_monthly,
+            self.settings_yearly_exp_entry: self.settings_warning_yearly
+        }
+        for entry, warning in entrys_warnings.items():
+            if len(entry.get()) <= 10:
+                entry.configure(state="disabled", fg_color="#673ab7")
+                warning.configure(text="")
+            else:
+                warning.configure(text="The value is too long!")
+
+    # Change function for settings
+    def change(self):
+        entrys = [self.settings_income_entry, self.settings_monthly_exp_entry, self.settings_yearly_exp_entry]
+        for entry in entrys:
+            if entry.cget("state") == "disabled":
+                entry.configure(state="normal")
+                entry.configure(fg_color="#343638")
 
     # Appearance Mode function
     # def change_appearance_mode_event(self, new_appearance_mode: str):
