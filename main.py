@@ -115,13 +115,19 @@ class App(customtkinter.CTk):
             self.settings_monthly_exp_entry: self.settings_warning_monthly,
             self.settings_yearly_exp_entry: self.settings_warning_yearly
         }
+        abc_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         for entry, warning in entrys_warnings.items():
             if len(entry.get()) <= 10:
-                entry.configure(state="disabled", fg_color="#006600")
-                warning.configure(text="")
+                for i in entry.get().lower():
+                    if i in abc_list:
+                        entry.configure(fg_color="#990000")
+                        warning.configure(text="This value is incorrect!")
+                        break
+                    entry.configure(state="disabled", fg_color="#006600")
+                    warning.configure(text="")
             else:
                 entry.configure(fg_color="#990000")
-                warning.configure(text="This value is too long!")
+                warning.configure(text="This value is incorrect!")
 
     # Change function for settings
     def change(self):
