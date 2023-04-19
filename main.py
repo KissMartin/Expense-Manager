@@ -42,7 +42,7 @@ class App(customtkinter.CTk):
 
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
-        # Settings Frame elements
+        # Subs & Sum frame elements
         self.sub_n_sum_income = customtkinter.CTkLabel(self.sub_n_sum_frame, text="Income:", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.sub_n_sum_income.grid(row=0, column=0, padx=20, pady=10, sticky="w")
         self.sub_n_sum_income_entry = customtkinter.CTkEntry(self.sub_n_sum_frame, width=200)
@@ -108,7 +108,7 @@ class App(customtkinter.CTk):
     def sub_n_sum_button_event(self):
         self.select_frame_by_name("Subs & Sum")
 
-    # Validate fucntion for settings menu
+    # Validate fucntion for Subs & Sum menu
     def validate(self):
         entrys_warnings = {
             self.sub_n_sum_income_entry: self.sub_n_sum_warning_income,
