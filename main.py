@@ -1,4 +1,7 @@
 import customtkinter
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 customtkinter.set_appearance_mode("dark")
@@ -19,11 +22,6 @@ class App(customtkinter.CTk):
         self.nav_frame.grid(row=0, column=0, sticky="nsew")
         self.nav_frame.grid_rowconfigure(4, weight=1)
 
-        self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.sub_n_sum_frame.grid(row=0, column=0, sticky="nsew")
-        self.sub_n_sum_frame.grid_rowconfigure(6, weight=1)
-        self.sub_n_sum_frame.grid_rowconfigure(7, weight=0)
-
         # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
@@ -36,13 +34,41 @@ class App(customtkinter.CTk):
         self.logged_in_as = customtkinter.CTkLabel(self.nav_frame, text='Logged in as: ')
         self.logged_in_as.grid(row=4, column=0, padx=20, pady=10, sticky="sw")
 
-        # Different Frames
+        # Expenses Frames
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.expenses_frame.grid_columnconfigure(0, weight=1)
 
+        # Charts Frame
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.charts_frame.grid_columnconfigure(0, weight=1)
+        # Pie chart
+        self.pie_charts_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=200)
+        self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
+        self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
+        self.pie_chart = self.figure.add_subplot(111)  # type: ignore
+        self.pie_chart.pie([1, 2, 3, 4], labels=['Frogs', 'Hogs', 'Dogs', 'Logs'], autopct='%1.1f%%', shadow=True, startangle=90)
+        self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
+        self.pie_chart_canvas.draw()
+        self.pie_chart_canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+        # Bar chart
 
-        # Subs & Sum frame elements
+        self.bar_chart_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=200)
+        self.bar_chart_canvas.grid(row=2, column=0, padx=20, pady=(5, 20), sticky="nsew")
+        self.figure2 = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
+        self.bar_chart = self.figure2.add_subplot(111)  # type: ignore
+        self.bar_chart.bar([1, 2, 3, 4], [1, 2, 3, 4])
+        self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.bar_chart_canvas)
+        self.bar_chart_canvas.draw()
+        self.bar_chart_canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+        mpl.rc('xtick', color='white')
+        mpl.rc('ytick', color='white')
+
+        # Subs & Sum frame and elements
+        self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.sub_n_sum_frame.grid(row=0, column=0, sticky="nsew")
+        self.sub_n_sum_frame.grid_rowconfigure(6, weight=1)
+        self.sub_n_sum_frame.grid_rowconfigure(7, weight=0)
+
         self.sub_n_sum_income = customtkinter.CTkLabel(self.sub_n_sum_frame, text="Income:", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.sub_n_sum_income.grid(row=0, column=0, padx=20, pady=10, sticky="w")
         self.sub_n_sum_income_entry = customtkinter.CTkEntry(self.sub_n_sum_frame, width=200)
@@ -83,7 +109,7 @@ class App(customtkinter.CTk):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
         self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
-        self.sub_n_sum_button.configure(fg_color=("gray75", "gray25") if name == "Subs & Sum" else "#1f6aa5")
+        self.sub_n_sum_button.configure(fg_color=("gray75", "gray25") if name == "Subs & Sum" else "#1f6aa5")  # 1f6aa5
 
         if name == "Expenses":
             self.expenses_frame.grid(row=0, column=1, sticky="nsew")
