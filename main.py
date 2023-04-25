@@ -1,5 +1,4 @@
 import customtkinter
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -14,6 +13,8 @@ class App(customtkinter.CTk):
 
         self.title("Expense Operator")
         self.geometry(f"{1400}x{800}")
+        self.minsize(800, 600)
+        self.resizable(True, False)
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -27,7 +28,7 @@ class App(customtkinter.CTk):
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
         self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=self.expenses_button_event)
         self.expenses_button.grid(row=1, column=0, padx=20, pady=10, sticky="ewn")
-        self.charts_button = customtkinter.CTkButton(self.nav_frame, text='Charts', command=self.charts_button_event)
+        self.charts_button = customtkinter.CTkButton(self.nav_frame, text='Charts', command=self.charts_button_event)  # + update charts
         self.charts_button.grid(row=2, column=0, padx=20, pady=10, sticky="enw")
         self.sub_n_sum_button = customtkinter.CTkButton(self.nav_frame, text='Subs & Sum', command=self.sub_n_sum_button_event)
         self.sub_n_sum_button.grid(row=3, column=0, padx=20, pady=10, sticky="ewn")
@@ -41,27 +42,44 @@ class App(customtkinter.CTk):
         # Charts Frame
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.charts_frame.grid_columnconfigure(0, weight=1)
+
         # Pie chart
-        self.pie_charts_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=200)
+        self.pie_charts_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
         self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.pie_chart = self.figure.add_subplot(111)  # type: ignore
         self.pie_chart.pie([1, 2, 3, 4], labels=['Frogs', 'Hogs', 'Dogs', 'Logs'], autopct='%1.1f%%', shadow=True, startangle=90)
         self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
+        for text in self.pie_chart.texts:  # type: ignore
+            text.set_color('white')
+        self.pie_chart.set_facecolor("#1a1a1a")
+        self.pie_chart.tick_params(axis='x', colors='white')
+        self.pie_chart.tick_params(axis='y', colors='white')
+        self.pie_chart.xaxis.label.set_color('white')
+        self.pie_chart.yaxis.label.set_color('white')
         self.pie_chart_canvas.draw()
-        self.pie_chart_canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
-        # Bar chart
+        self.pie_chart_canvas.get_tk_widget().grid(row=1, column=0, padx=20, sticky="nsew")
 
-        self.bar_chart_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=200)
-        self.bar_chart_canvas.grid(row=2, column=0, padx=20, pady=(5, 20), sticky="nsew")
+        # Bar chart
+        self.bar_chart_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
+        self.bar_chart_canvas.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="nsew")
         self.figure2 = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.bar_chart = self.figure2.add_subplot(111)  # type: ignore
-        self.bar_chart.bar([1, 2, 3, 4], [1, 2, 3, 4])
+        self.bar_chart.bar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.bar_chart_canvas)
+        self.bar_chart.set_facecolor("#1a1a1a")
+        self.bar_chart.set_ylabel('Amount earned')
+        self.bar_chart.set_xlabel('Month')
+        self.bar_chart.tick_params(axis='x', colors='white')
+        self.bar_chart.tick_params(axis='y', colors='white')
+        self.bar_chart.xaxis.label.set_color('white')
+        self.bar_chart.yaxis.label.set_color('white')
+        self.bar_chart.spines['bottom'].set_color('white')
+        self.bar_chart.spines['right'].set_color('white')
+        self.bar_chart.spines['left'].set_color('white')
+        self.bar_chart.spines['top'].set_color('white')
         self.bar_chart_canvas.draw()
-        self.bar_chart_canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
-        mpl.rc('xtick', color='white')
-        mpl.rc('ytick', color='white')
+        self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
 
         # Subs & Sum frame and elements
         self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -97,12 +115,8 @@ class App(customtkinter.CTk):
         self.sub_n_sum_apply_changes_complete = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
         self.sub_n_sum_apply_changes_complete.grid(row=7, column=1, sticky="ws", pady=(10, 30), padx=10)
 
-        # self.appearance_mode_menu = customtkinter.CTkOptionMenu(self.settings_frame, values=["Light", "Dark", "System"],
-        #                                                         command=self.change_appearance_mode_event)
-        # self.appearance_mode_menu.grid(row=1, column=1, padx=20, pady=20, sticky="s")
-
         # Default Frame (Loading Frame)
-        self.select_frame_by_name("Subs & Sum")
+        self.select_frame_by_name("Charts")
 
     # Change Frame function
     def select_frame_by_name(self, name: str):
@@ -130,6 +144,7 @@ class App(customtkinter.CTk):
 
     def charts_button_event(self):
         self.select_frame_by_name("Charts")
+        # todo: function which updates the chart with the new data
 
     def sub_n_sum_button_event(self):
         self.select_frame_by_name("Subs & Sum")
@@ -162,10 +177,6 @@ class App(customtkinter.CTk):
             if entry.cget("state") == "disabled":
                 entry.configure(state="normal")
                 entry.configure(fg_color="#343638")
-
-    # Appearance Mode function
-    # def change_appearance_mode_event(self, new_appearance_mode: str):
-    #     customtkinter.set_appearance_mode(new_appearance_mode)
 
 
 if __name__ == "__main__":
