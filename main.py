@@ -13,8 +13,7 @@ class App(customtkinter.CTk):
 
         self.title("Expense Operator")
         self.geometry(f"{1400}x{800}")
-        self.minsize(1300, 600)
-        self.resizable(False, False)  # Ideiglenes
+        self.resizable(False, False)
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -48,7 +47,7 @@ class App(customtkinter.CTk):
         self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.pie_chart = self.figure.add_subplot(111)  # type: ignore
-        self.pie_chart.pie([1, 2, 3, 4], labels=['Frogs', 'Hogs', 'Dogs', 'Logs'], autopct='%1.1f%%', shadow=True, startangle=90)
+        self.pie_chart.pie([1, 2, 3, 4], labels=['Categ1', 'Categ2', 'Categ3', 'Categ4'], autopct='%1.1f%%', shadow=True, startangle=90)
         self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
         for text in self.pie_chart.texts:  # type: ignore
             text.set_color('white')
@@ -142,7 +141,10 @@ class App(customtkinter.CTk):
 
     def charts_button_event(self):
         self.select_frame_by_name("Charts")
-        # todo: function which updates the chart with the new data
+        self.generate_update_chart()
+
+    def generate_update_chart(self):
+        pass
 
     def sub_n_sum_button_event(self):
         self.select_frame_by_name("Subs & Sum")
