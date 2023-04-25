@@ -13,8 +13,8 @@ class App(customtkinter.CTk):
 
         self.title("Expense Operator")
         self.geometry(f"{1400}x{800}")
-        self.minsize(800, 600)
-        self.resizable(True, False)
+        self.minsize(1300, 600)
+        self.resizable(False, False)  # Ideiglenes
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -41,7 +41,7 @@ class App(customtkinter.CTk):
 
         # Charts Frame
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.charts_frame.grid_columnconfigure(0, weight=1)
+        self.charts_frame.grid_columnconfigure(1, weight=1)
 
         # Pie chart
         self.pie_charts_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
@@ -61,12 +61,10 @@ class App(customtkinter.CTk):
         self.pie_chart_canvas.get_tk_widget().grid(row=1, column=0, padx=20, sticky="nsew")
 
         # Bar chart
-        self.bar_chart_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
-        self.bar_chart_canvas.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="nsew")
         self.figure2 = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.bar_chart = self.figure2.add_subplot(111)  # type: ignore
         self.bar_chart.bar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-        self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.bar_chart_canvas)
+        self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.pie_charts_canvas)
         self.bar_chart.set_facecolor("#1a1a1a")
         self.bar_chart.set_ylabel('Amount earned')
         self.bar_chart.set_xlabel('Month')
