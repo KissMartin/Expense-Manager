@@ -47,7 +47,10 @@ class App(customtkinter.CTk):
         self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.pie_chart = self.figure.add_subplot(111)  # type: ignore
-        self.pie_chart.pie([1, 2, 3, 4], labels=['Categ1', 'Categ2', 'Categ3', 'Categ4'], autopct='%1.1f%%', shadow=True, startangle=90)
+        self.pie_labels = ['Categ1', 'Categ2', 'Categ3', 'Categ4']
+        self.explode = (0, 0.0, 0.1, 0)
+        self.pie_sizes = [15, 30, 45, 10]
+        self.pie_chart.pie(self.pie_sizes, labels=self.pie_labels, autopct='%1.1f%%', shadow=True, startangle=90, explode=self.explode)
         self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
         for text in self.pie_chart.texts:  # type: ignore
             text.set_color('white')
@@ -91,20 +94,6 @@ class App(customtkinter.CTk):
         self.sub_n_sum_warning_income = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
         self.sub_n_sum_warning_income.grid(row=1, column=1, padx=20, pady=10, sticky="w")
 
-        self.sub_n_sum_monthly_exp = customtkinter.CTkLabel(self.sub_n_sum_frame, text="Monthly Subscriptions:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sub_n_sum_monthly_exp.grid(row=2, column=0, padx=20, pady=10, sticky="w")
-        self.sub_n_sum_monthly_exp_entry = customtkinter.CTkEntry(self.sub_n_sum_frame, width=200)
-        self.sub_n_sum_monthly_exp_entry.grid(row=3, column=0, padx=20, pady=10)
-        self.sub_n_sum_warning_monthly = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
-        self.sub_n_sum_warning_monthly.grid(row=3, column=1, padx=20, pady=10, sticky="w")
-
-        self.sub_n_sum_yearly_exp = customtkinter.CTkLabel(self.sub_n_sum_frame, text="Yearly Subscriptions:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sub_n_sum_yearly_exp.grid(row=4, column=0, padx=20, pady=10, sticky="w")
-        self.sub_n_sum_yearly_exp_entry = customtkinter.CTkEntry(self.sub_n_sum_frame, width=200)
-        self.sub_n_sum_yearly_exp_entry.grid(row=5, column=0, padx=20, pady=10)
-        self.sub_n_sum_warning_yearly = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
-        self.sub_n_sum_warning_yearly.grid(row=5, column=1, padx=20, pady=10, sticky="w")
-
         self.sub_n_sum_change = customtkinter.CTkButton(self.sub_n_sum_frame, text="Change Settings", command=self.change)
         self.sub_n_sum_change.grid(row=6, column=0, sticky="ws", pady=10, padx=20)
         self.sub_n_sum_apply_changes = customtkinter.CTkButton(self.sub_n_sum_frame, text="Apply Changes", command=self.validate)
@@ -120,7 +109,7 @@ class App(customtkinter.CTk):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
         self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
-        self.sub_n_sum_button.configure(fg_color=("gray75", "gray25") if name == "Subs & Sum" else "#1f6aa5")  # 1f6aa5
+        self.sub_n_sum_button.configure(fg_color=("gray75", "gray25") if name == "Subs & Sum" else "#1f6aa5")  # ff8000 esetleges szín
 
         if name == "Expenses":
             self.expenses_frame.grid(row=0, column=1, sticky="nsew")
@@ -151,32 +140,27 @@ class App(customtkinter.CTk):
 
     # Validate fucntion for Subs & Sum menu
     def validate(self):
-        entrys_warnings = {
-            self.sub_n_sum_income_entry: self.sub_n_sum_warning_income,
-            self.sub_n_sum_monthly_exp_entry: self.sub_n_sum_warning_monthly,
-            self.sub_n_sum_yearly_exp_entry: self.sub_n_sum_warning_yearly
-        }
+        entry = self.sub_n_sum_income_entry
+        warning = self.sub_n_sum_warning_income
         numbers_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        for entry, warning in entrys_warnings.items():
-            if len(entry.get()) <= 10:
-                for i in entry.get().lower():
-                    if i not in numbers_list:
-                        entry.configure(fg_color="#990000")
-                        warning.configure(text="This value is incorrect!")
-                        break
-                    entry.configure(state="disabled", fg_color="#006600")
-                    warning.configure(text="")
-            else:
-                entry.configure(fg_color="#990000")
-                warning.configure(text="This value is incorrect!")
+        if len(entry.get()) <= 10:
+            for i in entry.get().lower():
+                if i not in numbers_list:
+                    entry.configure(fg_color="#990000")
+                    warning.configure(text="This value is incorrect!")
+                    break
+                entry.configure(state="disabled", fg_color="#006600")
+                warning.configure(text="")
+        else:
+            entry.configure(fg_color="#990000")
+            warning.configure(text="This value is incorrect!")
 
     # Change function for sub_n_sum_frame
     def change(self):
-        entrys = [self.sub_n_sum_income_entry, self.sub_n_sum_monthly_exp_entry, self.sub_n_sum_yearly_exp_entry]
-        for entry in entrys:
-            if entry.cget("state") == "disabled":
-                entry.configure(state="normal")
-                entry.configure(fg_color="#343638")
+        entry = self.sub_n_sum_income_entry
+        if entry.cget("state") == "disabled":
+            entry.configure(state="normal")
+            entry.configure(fg_color="#343638")
 
 
 if __name__ == "__main__":
