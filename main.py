@@ -1,10 +1,75 @@
 import customtkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import datetime as dt
+
+
+def optionmenu_callback(choice):
+        print("optionmenu dropdown clicked:", choice)
 
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
+
+
+class MyTabView(customtkinter.CTkTabview):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        self.add("Monthly")
+        self.add("Yearly")
+
+        self.sub_n_sum_monthly_label_1 = customtkinter.CTkLabel(master=self.tab("Monthly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_monthly_label_1.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_monthly_entry_1 = customtkinter.CTkEntry(master=self.tab("Monthly"), width=200)
+        self.sub_n_sum_monthly_entry_1.grid(row=1, column=0, padx=20, pady=10)
+
+        self.sub_n_sum_monthly_label_2 = customtkinter.CTkLabel(master=self.tab("Monthly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_monthly_label_2.grid(row=0, column=1, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_monthly_entry_2 = customtkinter.CTkEntry(master=self.tab("Monthly"), width=200)
+        self.sub_n_sum_monthly_entry_2.grid(row=1, column=1, padx=20, pady=10)
+
+        self.sub_n_sum_monthly_label_3 = customtkinter.CTkLabel(master=self.tab("Monthly"), text="Date-From:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_monthly_label_3.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_monthly_entry_3 = customtkinter.CTkEntry(master=self.tab("Monthly"), width=200)
+        self.sub_n_sum_monthly_entry_3.grid(row=4, column=0, padx=20, pady=10)
+
+        self.sub_n_sum_monthly_label_4 = customtkinter.CTkLabel(master=self.tab("Monthly"), text="Date-To:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_monthly_label_4.grid(row=3, column=1, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_monthly_entry_4 = customtkinter.CTkEntry(master=self.tab("Monthly"), width=200)
+        self.sub_n_sum_monthly_entry_4.grid(row=4, column=1, padx=20, pady=10)
+
+        self.sub_n_sum_monthly_current_date = customtkinter.CTkButton(master=self.tab("Monthly"), text="Current Date")
+        self.sub_n_sum_monthly_current_date.grid(row=6, column=0, sticky="w", pady=20, padx=20)
+        self.sub_n_sum_monthly_save = customtkinter.CTkButton(master=self.tab("Monthly"), text="Save")
+        self.sub_n_sum_monthly_save.grid(row=7, column=0, sticky="w", pady=20, padx=20)
+
+        
+        
+        self.sub_n_sum_yearly_label_1 = customtkinter.CTkLabel(master=self.tab("Yearly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_yearly_label_1.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_yearly_entry_1 = customtkinter.CTkEntry(master=self.tab("Yearly"), width=200)
+        self.sub_n_sum_yearly_entry_1.grid(row=1, column=0, padx=20, pady=10)
+
+        self.sub_n_sum_yearly_label_2 = customtkinter.CTkLabel(master=self.tab("Yearly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_yearly_label_2.grid(row=0, column=1, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_yearly_entry_2 = customtkinter.CTkEntry(master=self.tab("Yearly"), width=200)
+        self.sub_n_sum_yearly_entry_2.grid(row=1, column=1, padx=20, pady=10)
+
+        self.sub_n_sum_yearly_label_3 = customtkinter.CTkLabel(master=self.tab("Yearly"), text="Date-From:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_yearly_label_3.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_yearly_entry_3 = customtkinter.CTkEntry(master=self.tab("Yearly"), width=200)
+        self.sub_n_sum_yearly_entry_3.grid(row=4, column=0, padx=20, pady=10)
+
+        self.sub_n_sum_yearly_label_4 = customtkinter.CTkLabel(master=self.tab("Yearly"), text="Date-To:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sub_n_sum_yearly_label_4.grid(row=3, column=1, padx=20, pady=10, sticky="w")
+        self.sub_n_sum_yearly_entry_4 = customtkinter.CTkEntry(master=self.tab("Yearly"), width=200)
+        self.sub_n_sum_yearly_entry_4.grid(row=4, column=1, padx=20, pady=10)
+
+        self.sub_n_sum_yearly_current_date = customtkinter.CTkButton(master=self.tab("Yearly"), text="Current Date")
+        self.sub_n_sum_yearly_current_date.grid(row=6, column=0, sticky="w", pady=20, padx=20)
+        self.sub_n_sum_yearly_save = customtkinter.CTkButton(master=self.tab("Yearly"), text="Save")
+        self.sub_n_sum_yearly_save.grid(row=7, column=0, sticky="w", pady=20, padx=20)
 
 
 class App(customtkinter.CTk):
@@ -81,6 +146,33 @@ class App(customtkinter.CTk):
         self.bar_chart_canvas.draw()
         self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
 
+        # Expenses frame elements
+        self.expenses_main_title = customtkinter.CTkLabel(self.expenses_frame, text="New expense", font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.expenses_main_title.grid(row=0, column=0, padx=200, pady=50, sticky="n")
+        
+        self.expenses_name = customtkinter.CTkLabel(self.expenses_frame, text="Name:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_name.grid(row=1, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_name_entry = customtkinter.CTkEntry(self.expenses_frame, width=200)
+        self.expenses_name_entry.grid(row=1, column=0, padx=50, pady=10)
+
+        self.expenses_type = customtkinter.CTkLabel(self.expenses_frame, text="Type:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_type.grid(row=2, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_type_entry = customtkinter.CTkOptionMenu(self.expenses_frame, width=200, values=["Food", "Gas", "Rezsi", "Other", "School", "Clothes", "Kölcsön", "Hobby"], command=optionmenu_callback)
+        self.expenses_type_entry.grid(row=2, column=0, padx=50, pady=10)
+        self.expenses_type_entry.set("Food")
+        
+        self.expenses_date = customtkinter.CTkLabel(self.expenses_frame, text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_date.grid(row=3, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_date_entry = customtkinter.CTkEntry(self.expenses_frame, width=200)
+        self.expenses_date_entry.grid(row=3, column=0, padx=50, pady=10)
+
+        self.expenses_current_date = customtkinter.CTkButton(self.expenses_frame, text="Current Date", command=self.set_current_date)
+        self.expenses_current_date.grid(row=4, column=0, sticky="w", pady=10, padx=20)
+        self.expenses_reset = customtkinter.CTkButton(self.expenses_frame, text="Reset", command=self.reset_expenses)
+        self.expenses_reset.grid(row=5, column=0, sticky="w", pady=10, padx=20)
+        self.expenses_save = customtkinter.CTkButton(self.expenses_frame, text="Save", command=self.save)
+        self.expenses_save.grid(row=6, column=0, sticky="w", pady=10, padx=20)
+
         # Subs & Sum frame and elements
         self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.sub_n_sum_frame.grid(row=0, column=0, sticky="nsew")
@@ -100,6 +192,9 @@ class App(customtkinter.CTk):
         self.sub_n_sum_apply_changes.grid(row=7, column=0, sticky="ws", pady=(10, 30), padx=20)
         self.sub_n_sum_apply_changes_complete = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
         self.sub_n_sum_apply_changes_complete.grid(row=7, column=1, sticky="ws", pady=(10, 30), padx=10)
+
+        self.tab_view = MyTabView(self.sub_n_sum_frame, width=600, height=400)
+        self.tab_view.grid(row=4, column=2, padx=20, pady=20)
 
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Charts")
@@ -161,6 +256,28 @@ class App(customtkinter.CTk):
         if entry.cget("state") == "disabled":
             entry.configure(state="normal")
             entry.configure(fg_color="#343638")
+
+    def reset_expenses(self):
+        entrys = [self.expenses_name_entry, self.expenses_type_entry, self.expenses_date_entry]
+        for entry in entrys:
+            if entry == self.expenses_name_entry:
+                self.expenses_name_entry.delete(0, 'end')
+            elif entry == self.expenses_type_entry:
+                self.expenses_type_entry.set("Food")
+            elif entry == self.expenses_date_entry:
+                self.expenses_date_entry.delete(0, 'end')
+
+    def set_current_date(self):
+        date = dt.datetime.now()
+        self.expenses_date_entry.delete(0, 'end')
+        self.expenses_date_entry.insert(0, f'{date:%d %B %Y}')
+
+    def save(self):
+        name = str(self.expenses_name_entry.get())
+        type = str(self.expenses_type_entry.get())
+        date = str(self.expenses_date_entry.get())
+        with open('expenses.txt', 'w') as f: 
+            f.write(f"{name};{type};{date}")
 
 
 if __name__ == "__main__":
