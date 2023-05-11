@@ -41,7 +41,7 @@ class App(customtkinter.CTk):
 
         # Expenses Frames
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.expenses_frame.grid_columnconfigure(0, weight=1)
+        self.expenses_frame.grid_columnconfigure(0, weight=0)
 
         # Charts Frame
         self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -87,31 +87,29 @@ class App(customtkinter.CTk):
         self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
 
         # Expenses frame elements
-        self.expenses_main_title = customtkinter.CTkLabel(self.expenses_frame, text="New expense", font=customtkinter.CTkFont(size=30, weight="bold"))
-        self.expenses_main_title.grid(row=0, column=0, padx=200, pady=50, sticky="n")
+        self.expenses_main_title = customtkinter.CTkLabel(self.expenses_frame, text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.expenses_main_title.grid(row=0, column=0, padx=10, pady=50, sticky="w")
 
         self.expenses_name = customtkinter.CTkLabel(self.expenses_frame, text="Name:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.expenses_name.grid(row=1, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_name.grid(row=1, column=0, padx=10, pady=10, sticky="w")
         self.expenses_name_entry = customtkinter.CTkEntry(self.expenses_frame, width=200)
-        self.expenses_name_entry.grid(row=1, column=0, padx=50, pady=10)
+        self.expenses_name_entry.grid(row=1, column=0, padx=100, pady=10)
 
         self.expenses_type = customtkinter.CTkLabel(self.expenses_frame, text="Type:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.expenses_type.grid(row=2, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_type.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.expenses_type_entry = customtkinter.CTkOptionMenu(self.expenses_frame, width=200, values=["Housing", "Clothing", "Food", "Entertainment", "Transportation", "Other"])
-        self.expenses_type_entry.grid(row=2, column=0, padx=50, pady=10)
+        self.expenses_type_entry.grid(row=2, column=0, padx=100, pady=10)
         self.expenses_type_entry.set("Food")
 
         self.expenses_date = customtkinter.CTkLabel(self.expenses_frame, text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.expenses_date.grid(row=3, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_date.grid(row=3, column=0, padx=10, pady=10, sticky="w")
         self.expenses_date_entry = customtkinter.CTkEntry(self.expenses_frame, width=200)
-        self.expenses_date_entry.grid(row=3, column=0, padx=50, pady=10)
+        self.expenses_date_entry.grid(row=3, column=0, padx=100, pady=10)
 
         self.expenses_current_date = customtkinter.CTkButton(self.expenses_frame, text="Current Date", command=self.set_current_date)
-        self.expenses_current_date.grid(row=4, column=0, sticky="w", pady=10, padx=20)
-        self.expenses_reset = customtkinter.CTkButton(self.expenses_frame, text="Reset", command=self.reset_expenses)
-        self.expenses_reset.grid(row=5, column=0, sticky="w", pady=10, padx=20)
+        self.expenses_current_date.grid(row=4, column=0, sticky="w", pady=10, padx=10)
         self.expenses_save = customtkinter.CTkButton(self.expenses_frame, text="Save")  # save with sqlite3
-        self.expenses_save.grid(row=6, column=0, sticky="w", pady=10, padx=20)
+        self.expenses_save.grid(row=4, column=0, sticky="w", pady=10, padx=(160, 0))
 
         # Subs & Sum frame and elements
         self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -222,38 +220,38 @@ class App(customtkinter.CTk):
         self.select_frame_by_name("Subs & Sum")
 
     # Validate fucntion for Subs & Sum menu
-    def validate(self):
-        entry = self.sub_n_sum_income_entry
-        warning = self.sub_n_sum_warning_income
-        numbers_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        if len(entry.get()) <= 10:
-            for i in entry.get().lower():
-                if i not in numbers_list:
-                    entry.configure(fg_color="#990000")
-                    warning.configure(text="This value is incorrect!")
-                    break
-                entry.configure(state="disabled", fg_color="#006600")
-                warning.configure(text="")
-        else:
-            entry.configure(fg_color="#990000")
-            warning.configure(text="This value is incorrect!")
+    # def validate(self):
+    #     entry = self.sub_n_sum_income_entry
+    #     warning = self.sub_n_sum_warning_income
+    #     numbers_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    #     if len(entry.get()) <= 10:
+    #         for i in entry.get().lower():
+    #             if i not in numbers_list:
+    #                 entry.configure(fg_color="#990000")
+    #                 warning.configure(text="This value is incorrect!")
+    #                 break
+    #             entry.configure(state="disabled", fg_color="#006600")
+    #             warning.configure(text="")
+    #     else:
+    #         entry.configure(fg_color="#990000")
+    #         warning.configure(text="This value is incorrect!")
 
-    # Change function for sub_n_sum_frame
-    def change(self):
-        entry = self.sub_n_sum_income_entry
-        if entry.cget("state") == "disabled":
-            entry.configure(state="normal")
-            entry.configure(fg_color="#343638")
+    # # Change function for sub_n_sum_frame
+    # def change(self):
+    #     entry = self.sub_n_sum_income_entry
+    #     if entry.cget("state") == "disabled":
+    #         entry.configure(state="normal")
+    #         entry.configure(fg_color="#343638")
 
-    def reset_expenses(self):
-        entrys = [self.expenses_name_entry, self.expenses_type_entry, self.expenses_date_entry]
-        for entry in entrys:
-            if entry == self.expenses_name_entry:
-                self.expenses_name_entry.delete(0, 'end')
-            elif entry == self.expenses_type_entry:
-                self.expenses_type_entry.set("Food")
-            elif entry == self.expenses_date_entry:
-                self.expenses_date_entry.delete(0, 'end')
+    # def reset_expenses(self):
+    #     entrys = [self.expenses_name_entry, self.expenses_type_entry, self.expenses_date_entry]
+    #     for entry in entrys:
+    #         if entry == self.expenses_name_entry:
+    #             self.expenses_name_entry.delete(0, 'end')
+    #         elif entry == self.expenses_type_entry:
+    #             self.expenses_type_entry.set("Food")
+    #         elif entry == self.expenses_date_entry:
+    #             self.expenses_date_entry.delete(0, 'end')
 
     def set_current_date(self):
         date = dt.datetime.now()
