@@ -1,5 +1,4 @@
 import datetime as dt
-from doctest import master
 import customtkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
