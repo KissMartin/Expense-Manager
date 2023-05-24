@@ -119,16 +119,16 @@ class App(customtkinter.CTk):
         count = 0
         for record in data:
             if record == data[0]:
-                self.tab_view_history.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3]), tags="vilagos")
+                self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(record[0], record[1], record[2], record[3]), tags="vilagos")
             else:
-                self.tab_view_history.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3]), tags="sotet")
+                self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(record[0], record[1], record[2], record[3]), tags="sotet")
             count += 1
         self.tab_view_history.tag_configure("vilagos", background="#1f6aa5")
         self.tab_view_history.tag_configure("sotet", background="#212121")
 
         def input_record_expenses():
             global count
-            self.tab_view_history.insert(parent='', index='end', iid=count, text='', values=(self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get()))
+            self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get()))
             count += 1
             clear_form_expenses()
 
@@ -252,7 +252,7 @@ class App(customtkinter.CTk):
 
         self.sns_monthly_datenow = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Current Date", command=self.set_current_date_monthly)
         self.sns_monthly_datenow.grid(row=3, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
-        self.sns_monthly_add = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Add", command=0)
+        self.sns_monthly_add = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Add", command=None)
         self.sns_monthly_add.grid(row=3, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
         self.sns_yearly_lab1 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
@@ -272,7 +272,7 @@ class App(customtkinter.CTk):
 
         self.sns_yearly_datenow = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Current Date", command=self.set_current_date_yearly)
         self.sns_yearly_datenow.grid(row=3, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
-        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=0)
+        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=None)
         self.sns_yearly_add.grid(row=3, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
         self.tab_view_monthly_tree = ttk.Treeview(self.sub_n_sum_frame)
@@ -305,7 +305,7 @@ class App(customtkinter.CTk):
 
         def input_record_monthly():
             global count
-            self.tab_view_monthly_tree.insert(parent='', index='end', iid=count, text='', values=(self.sns_monthly_ent1.get(), self.sns_monthly_ent3.get(), self.sms_monthly_ent2.get()))
+            self.tab_view_monthly_tree.insert(parent='', index='end', iid=str(count), text='', values=(self.sns_monthly_ent1.get(), self.sns_monthly_ent3.get(), self.sms_monthly_ent2.get()))
             count += 1
             clear_form_montly()
 
@@ -323,7 +323,7 @@ class App(customtkinter.CTk):
 
         def input_record_yearly():
             global count
-            self.tab_view_yearly_tree.insert(parent='', index='end', iid=count, text='', values=(self.sns_yearly_ent1.get(), self.sns_yearly_ent3.get(), self.sms_yearly_ent2.get()))
+            self.tab_view_yearly_tree.insert(parent='', index='end', iid=str(count), text='', values=(self.sns_yearly_ent1.get(), self.sns_yearly_ent3.get(), self.sms_yearly_ent2.get()))
             count += 1
             clear_form_yearly()
 
