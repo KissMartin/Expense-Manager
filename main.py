@@ -1,8 +1,8 @@
 import datetime as dt
+from tkinter import CENTER, END, NO, ttk
 import customtkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from tkinter import CENTER, END, NO, ttk
 
 
 customtkinter.set_appearance_mode("dark")
@@ -22,30 +22,36 @@ class App(customtkinter.CTk):
 
         self.nav_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.nav_frame.grid(row=0, column=0, sticky="nsew")
-        self.nav_frame.grid_rowconfigure(4, weight=1)
 
         # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
         self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=self.expenses_button_event)
         self.expenses_button.grid(row=1, column=0, padx=20, pady=10, sticky="ewn")
-        self.charts_button = customtkinter.CTkButton(self.nav_frame, text='Charts', command=self.charts_button_event)  # + update charts
-        self.charts_button.grid(row=2, column=0, padx=20, pady=10, sticky="enw")
-        self.sub_n_sum_button = customtkinter.CTkButton(self.nav_frame, text='Subs & Sum', command=self.sub_n_sum_button_event)
-        self.sub_n_sum_button.grid(row=3, column=0, padx=20, pady=10, sticky="ewn")
-        self.logged_in_as = customtkinter.CTkLabel(self.nav_frame, text='Logged in as: ')
-        self.logged_in_as.grid(row=4, column=0, padx=20, pady=10, sticky="sw")
+        self.stats_button = customtkinter.CTkButton(self.nav_frame, text='Statistics', command=self.stats_button_event)  # + update charts
+        self.stats_button.grid(row=2, column=0, padx=20, pady=10, sticky="enw")
+        self.subs_button = customtkinter.CTkButton(self.nav_frame, text='Subscriptions', command=self.sub_button_event)
+        self.subs_button.grid(row=3, column=0, padx=20, pady=10, sticky="ewn")
 
-        # Expenses Frames
-        self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.expenses_frame.grid_columnconfigure(0, weight=0)
+        # Stats Frame
+        self.stats_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.stats_frame.grid_columnconfigure(1, weight=1)
 
-        # Charts Frame
-        self.charts_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.charts_frame.grid_columnconfigure(1, weight=1)
+        self.stats_numbers = customtkinter.CTkTabview(self.stats_frame, width=1165, height=335)
+        self.stats_numbers.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
+        self.stats_charts = customtkinter.CTkTabview(self.stats_frame, width=1165, height=390)
+        self.stats_charts.grid(row=1, column=0, padx=(10, 5), pady=0, sticky="nesw")
+
+        self.stats_numbers.add("Stats")
+        self.stats_charts.add("Charts")
+
+        self.currency = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Main Currency type:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.currency.grid(row=1, column=0, padx=20, pady=10, sticky="sw")
+        self.currency_entry = customtkinter.CTkOptionMenu(self.stats_numbers.tab("Stats"), values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.currency_entry.grid(row=1, column=1, padx=20, pady=10, sticky="sw")
 
         # Pie chart
-        self.pie_charts_canvas = customtkinter.CTkCanvas(self.charts_frame, width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
+        self.pie_charts_canvas = customtkinter.CTkCanvas(self.stats_charts.tab("Charts"), width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
         self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
         self.pie_chart = self.figure.add_subplot(111)  # type: ignore
@@ -83,6 +89,10 @@ class App(customtkinter.CTk):
         self.bar_chart_canvas.draw()
         self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
 
+        # Expenses Frame
+        self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.expenses_frame.grid_columnconfigure(0, weight=0)
+
         # Expenses frame elements
         self.style = ttk.Style()
         self.style.theme_use("default")
@@ -98,7 +108,7 @@ class App(customtkinter.CTk):
         self.tab_view_new.add("New")
         self.history_table.add("History")
         self.tab_view_history['columns'] = ('name', 'type', 'date', 'price')
-        self.tab_view_history.column("#0", width=0,  stretch=NO)
+        self.tab_view_history.column("#0", width=0, stretch=NO)
         self.tab_view_history.column("name", anchor=CENTER, width=80)
         self.tab_view_history.column("type", anchor=CENTER, width=80)
         self.tab_view_history.column("date", anchor=CENTER, width=80)
@@ -180,56 +190,47 @@ class App(customtkinter.CTk):
         self.expenses_type_entry.grid(row=2, column=0, padx=(140, 50), pady=10)
         self.expenses_type_entry.set("Food")
 
+        self.expenses_curr = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Currency:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_curr.grid(row=3, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_view_new.tab("New"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.expenses_curr_ent.grid(row=3, column=0, padx=(140, 50), pady=10)
+
         self.expenses_date = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.expenses_date.grid(row=3, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_date.grid(row=4, column=0, padx=50, pady=10, sticky="w")
         self.expenses_date_entry = customtkinter.CTkEntry(master=self.tab_view_new.tab("New"), width=200)
-        self.expenses_date_entry.grid(row=3, column=0, padx=(140, 50), pady=10)
+        self.expenses_date_entry.grid(row=4, column=0, padx=(140, 50), pady=10)
 
         self.expenses_price = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Price:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.expenses_price.grid(row=4, column=0, padx=50, pady=10, sticky="w")
+        self.expenses_price.grid(row=5, column=0, padx=50, pady=10, sticky="w")
         self.expenses_price_entry = customtkinter.CTkEntry(master=self.tab_view_new.tab("New"), width=200)
-        self.expenses_price_entry.grid(row=4, column=0, padx=(140, 50), pady=10)
+        self.expenses_price_entry.grid(row=5, column=0, padx=(140, 50), pady=10)
 
         self.expenses_current_date = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Current Date", command=self.set_current_date_expenses)
-        self.expenses_current_date.grid(row=5, column=0, sticky="w", pady=10, padx=50)
+        self.expenses_current_date.grid(row=6, column=0, sticky="w", pady=10, padx=50)
         self.expenses_save = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Save", command=numbers_only_and_filled)  # save with sqlite3
-        self.expenses_save.grid(row=5, column=0, sticky="w", pady=10, padx=(215, 50))
+        self.expenses_save.grid(row=6, column=0, sticky="w", pady=10, padx=(215, 50))
 
         self.expenses_clear_form = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Clear", command=clear_form_expenses)
-        self.expenses_clear_form.grid(row=6, column=0, sticky="w", pady=(10, 210), padx=(130, 50))
+        self.expenses_clear_form.grid(row=7, column=0, sticky="w", pady=(10, 190), padx=(130, 50))
 
         self.expenses_select_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Select Rec", command=select_record)
-        self.expenses_select_record.grid(row=7, column=0, sticky="w", pady=10, padx=(130, 50))
+        self.expenses_select_record.grid(row=8, column=0, sticky="w", pady=10, padx=(130, 50))
 
         self.expenses_change_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Change Rec", command=change_record)
-        self.expenses_change_record.grid(row=8, column=0, sticky="w", pady=10, padx=50)
+        self.expenses_change_record.grid(row=9, column=0, sticky="w", pady=10, padx=50)
         self.expenses_delete_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Delete Rec", command=delete)
-        self.expenses_delete_record.grid(row=8, column=0, sticky="w", pady=10, padx=(215, 50))
+        self.expenses_delete_record.grid(row=9, column=0, sticky="w", pady=10, padx=(215, 50))
 
-        # Subs & Sum frame and elements
-        self.sub_n_sum_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.sub_n_sum_frame.grid(row=0, column=0)
-        self.sub_n_sum_frame.grid_rowconfigure(6, weight=1)
-        self.sub_n_sum_frame.grid_rowconfigure(7, weight=0)
+        # Subscriptions frame and elements
+        self.subs_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.subs_frame.grid(row=0, column=0)
+        self.subs_frame.grid_rowconfigure(6, weight=1)
+        self.subs_frame.grid_rowconfigure(7, weight=0)
 
-        # self.sub_n_sum_income = customtkinter.CTkLabel(self.sub_n_sum_frame, text="Income:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        # self.sub_n_sum_income.grid(row=0, column=0, padx=20, pady=10, sticky="w")
-        # self.sub_n_sum_income_entry = customtkinter.CTkEntry(self.sub_n_sum_frame, width=200)
-        # self.sub_n_sum_income_entry.grid(row=1, column=0, padx=20, pady=(0, 10))
-        # self.sub_n_sum_warning_income = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
-        # self.sub_n_sum_warning_income.grid(row=1, column=1, padx=20, pady=10, sticky="w")
-
-        # self.sub_n_sum_change = customtkinter.CTkButton(self.sub_n_sum_frame, text="Change Settings", command=self.change)
-        # self.sub_n_sum_change.grid(row=6, column=0, sticky="ws", pady=10, padx=20)
-        # self.sub_n_sum_apply_changes = customtkinter.CTkButton(self.sub_n_sum_frame, text="Apply Changes", command=self.validate)
-        # self.sub_n_sum_apply_changes.grid(row=7, column=0, sticky="ws", pady=(10, 30), padx=20)
-        # self.sub_n_sum_apply_changes_complete = customtkinter.CTkLabel(self.sub_n_sum_frame, text="")
-        # self.sub_n_sum_apply_changes_complete.grid(row=7, column=1, sticky="ws", pady=(10, 30), padx=10)
-
-        # Tab view for sub_n_sum
-        self.tab_view_monthly = customtkinter.CTkTabview(self.sub_n_sum_frame, width=575, height=780)
+        # Tab view for subscriptions
+        self.tab_view_monthly = customtkinter.CTkTabview(self.subs_frame, width=575, height=780)
         self.tab_view_monthly.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
-        self.tab_view_yearly = customtkinter.CTkTabview(self.sub_n_sum_frame, width=575, height=780)
+        self.tab_view_yearly = customtkinter.CTkTabview(self.subs_frame, width=575, height=780)
         self.tab_view_yearly.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
 
         self.tab_view_monthly.add("Monthly")
@@ -250,10 +251,15 @@ class App(customtkinter.CTk):
         self.sns_monthly_ent3 = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
         self.sns_monthly_ent3.grid(row=2, column=1, padx=20, pady=10, sticky="e")
 
+        self.sns_monthly_lab4 = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_monthly_lab4.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_monthy_lab4 = customtkinter.CTkOptionMenu(master=self.tab_view_monthly.tab("Monthly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.sns_monthy_lab4.grid(row=3, column=1, padx=20, pady=10)
+
         self.sns_monthly_datenow = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Current Date", command=self.set_current_date_monthly)
-        self.sns_monthly_datenow.grid(row=3, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
+        self.sns_monthly_datenow.grid(row=4, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
         self.sns_monthly_add = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Add", command=None)
-        self.sns_monthly_add.grid(row=3, column=1, sticky="e", padx=20, pady=20, ipadx=10)
+        self.sns_monthly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
         self.sns_yearly_lab1 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.sns_yearly_lab1.grid(row=0, column=0, padx=(90, 20), pady=10, sticky="w")
@@ -270,16 +276,21 @@ class App(customtkinter.CTk):
         self.sns_yearly_ent3 = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
         self.sns_yearly_ent3.grid(row=2, column=1, padx=20, pady=10, sticky="e")
 
-        self.sns_yearly_datenow = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Current Date", command=self.set_current_date_yearly)
-        self.sns_yearly_datenow.grid(row=3, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
-        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=None)
-        self.sns_yearly_add.grid(row=3, column=1, sticky="e", padx=20, pady=20, ipadx=10)
+        self.sns_yearly_lab4 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_yearly_lab4.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_yearly_lab4 = customtkinter.CTkOptionMenu(master=self.tab_view_yearly.tab("Yearly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.sns_yearly_lab4.grid(row=3, column=1, padx=20, pady=10)
 
-        self.tab_view_monthly_tree = ttk.Treeview(self.sub_n_sum_frame)
-        self.tab_view_monthly_tree.grid(row=0, column=0, padx=20, pady=(260, 10), sticky="nesw")
+        self.sns_yearly_datenow = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Current Date", command=self.set_current_date_yearly)
+        self.sns_yearly_datenow.grid(row=4, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
+        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=None)
+        self.sns_yearly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
+
+        self.tab_view_monthly_tree = ttk.Treeview(self.subs_frame)
+        self.tab_view_monthly_tree.grid(row=0, column=0, padx=20, pady=(300, 10), sticky="nesw")
 
         self.tab_view_monthly_tree['columns'] = ('name', 'date', 'price')
-        self.tab_view_monthly_tree.column("#0", width=0,  stretch=NO)
+        self.tab_view_monthly_tree.column("#0", width=0, stretch=NO)
         self.tab_view_monthly_tree.column("name", anchor=CENTER, width=60)
         self.tab_view_monthly_tree.column("date", anchor=CENTER, width=60)
         self.tab_view_monthly_tree.column("price", anchor=CENTER, width=60)
@@ -289,11 +300,11 @@ class App(customtkinter.CTk):
         self.tab_view_monthly_tree.heading("date", text="Date", anchor=CENTER)
         self.tab_view_monthly_tree.heading("price", text="Price", anchor=CENTER)
 
-        self.tab_view_yearly_tree = ttk.Treeview(self.sub_n_sum_frame)
-        self.tab_view_yearly_tree.grid(row=0, column=1, padx=20, pady=(260, 10), sticky="nesw")
+        self.tab_view_yearly_tree = ttk.Treeview(self.subs_frame)
+        self.tab_view_yearly_tree.grid(row=0, column=1, padx=20, pady=(300, 10), sticky="nesw")
 
         self.tab_view_yearly_tree['columns'] = ('name', 'date', 'price')
-        self.tab_view_yearly_tree.column("#0", width=0,  stretch=NO)
+        self.tab_view_yearly_tree.column("#0", width=0, stretch=NO)
         self.tab_view_yearly_tree.column("name", anchor=CENTER, width=60)
         self.tab_view_yearly_tree.column("date", anchor=CENTER, width=60)
         self.tab_view_yearly_tree.column("price", anchor=CENTER, width=60)
@@ -340,41 +351,41 @@ class App(customtkinter.CTk):
             self.sms_yearly_ent2.delete(0, END)
 
         # Default Frame (Loading Frame)
-        self.select_frame_by_name("Subs & Sum")
+        self.select_frame_by_name("Expenses")
 
     # Change Frame function
     def select_frame_by_name(self, name: str):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
-        self.charts_button.configure(fg_color=("gray75", "gray25") if name == "Charts" else "#1f6aa5")
-        self.sub_n_sum_button.configure(fg_color=("gray75", "gray25") if name == "Subs & Sum" else "#1f6aa5")  # ff8000 esetleges szín
+        self.stats_button.configure(fg_color=("gray75", "gray25") if name == "Statistics" else "#1f6aa5")
+        self.subs_button.configure(fg_color=("gray75", "gray25") if name == "Subscriptions" else "#1f6aa5")  # ff8000 esetleges szín
 
         if name == "Expenses":
             self.expenses_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.expenses_frame.grid_forget()
-        if name == "Charts":
-            self.charts_frame.grid(row=0, column=1, sticky="nsew")
+        if name == "Statistics":
+            self.stats_frame.grid(row=0, column=1, sticky="nsew")
         else:
-            self.charts_frame.grid_forget()
-        if name == "Subs & Sum":
-            self.sub_n_sum_frame.grid(row=0, column=1, sticky="nsew")
+            self.stats_frame.grid_forget()
+        if name == "Subscriptions":
+            self.subs_frame.grid(row=0, column=1, sticky="nsew")
         else:
-            self.sub_n_sum_frame.grid_forget()
+            self.subs_frame.grid_forget()
 
     # Swap Frame functions
     def expenses_button_event(self):
         self.select_frame_by_name("Expenses")
 
-    def charts_button_event(self):
-        self.select_frame_by_name("Charts")
+    def stats_button_event(self):
+        self.select_frame_by_name("Statistics")
         self.generate_update_chart()
 
     def generate_update_chart(self):
         pass
 
-    def sub_n_sum_button_event(self):
-        self.select_frame_by_name("Subs & Sum")
+    def sub_button_event(self):
+        self.select_frame_by_name("Subscriptions")
 
     def set_current_date_expenses(self):
         date = dt.datetime.now()
