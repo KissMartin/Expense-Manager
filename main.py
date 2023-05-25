@@ -1,5 +1,6 @@
 import datetime as dt
-from tkinter import CENTER, END, NO, ttk
+import sqlite3
+from tkinter import CENTER, END, MULTIPLE, NO, ttk
 import customtkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -22,6 +23,9 @@ class App(customtkinter.CTk):
 
         self.nav_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.nav_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.db_con = sqlite3.connect("database.db")
+        self.db_cur = self.db_con.cursor()
 
         # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
@@ -120,61 +124,23 @@ class App(customtkinter.CTk):
         self.tab_view_history.heading("date", text="Date", anchor=CENTER)
         self.tab_view_history.heading("price", text="Price", anchor=CENTER)
 
-        data = [
-            ["Kristóf", "Food", "14 May 2023", "25"],
-            ["Bence", "Transportation", "25 April 2023", "12"]
-        ]
+        self.expenses_table()
+        # def select_record():
+        #     clear_form_expenses()
+        #     selected = self.tab_view_history.focus()
+        #     values = self.tab_view_history.item(selected, 'values')
 
-        global count
-        count = 0
-        for record in data:
-            if record == data[0]:
-                self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(record[0], record[1], record[2], record[3]), tags="vilagos")
-            else:
-                self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(record[0], record[1], record[2], record[3]), tags="sotet")
-            count += 1
-        self.tab_view_history.tag_configure("vilagos", background="#1f6aa5")
-        self.tab_view_history.tag_configure("sotet", background="#212121")
+        #     self.expenses_name_entry.insert(0, values[0])
+        #     self.expenses_type_entry.set(values[1])
+        #     self.expenses_date_entry.insert(0, values[2])
+        #     self.expenses_price_entry.insert(0, values[3].split(' ')[0])
 
-        def input_record_expenses():
-            global count
-            self.tab_view_history.insert(parent='', index='end', iid=str(count), text='', values=(self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get()))
-            count += 1
-            clear_form_expenses()
-
-        def select_record():
-            clear_form_expenses()
-            selected = self.tab_view_history.focus()
-            values = self.tab_view_history.item(selected, 'values')
-
-            self.expenses_name_entry.insert(0, values[0])
-            self.expenses_type_entry.set(values[1])
-            self.expenses_date_entry.insert(0, values[2])
-            self.expenses_price_entry.insert(0, values[3])
-
-        def change_record():
-            selected = self.tab_view_history.focus()
-            if numbers_only_and_filled():
-                self.tab_view_history.item(selected, text="", values=(self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get()))
-                clear_form_expenses()
-
-        def delete():
-            x = self.tab_view_history.selection()
-            for record in x:
-                self.tab_view_history.delete(record)
-
-        def clear_form_expenses():
-            self.expenses_name_entry.delete(0, END)
-            self.expenses_type_entry.set("Food")
-            self.expenses_date_entry.delete(0, END)
-            self.expenses_price_entry.delete(0, END)
-
-        def numbers_only_and_filled():
-            if int(self.expenses_price_entry.get()):
-                if self.expenses_name_entry.get() and self.expenses_date_entry.get() != "":
-                    input_record_expenses()
-            else:
-                self.expenses_save.configure(command=0)
+        # def change_record():
+        #     selected = self.tab_view_history.focus()
+        #     print(selected)
+        #     if numbers_only_and_filled():
+        #         self.tab_view_history.item(selected, text="", values=(self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get()))
+        #         clear_form_expenses()
 
         self.expenses_main_title = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.expenses_main_title.grid(row=0, column=0, padx=110, pady=50, sticky="w")
@@ -207,19 +173,20 @@ class App(customtkinter.CTk):
 
         self.expenses_current_date = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Current Date", command=self.set_current_date_expenses)
         self.expenses_current_date.grid(row=6, column=0, sticky="w", pady=10, padx=50)
-        self.expenses_save = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Save", command=numbers_only_and_filled)  # save with sqlite3
+        self.expenses_save = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Save", command=self.numbers_only_and_filled)
         self.expenses_save.grid(row=6, column=0, sticky="w", pady=10, padx=(215, 50))
 
-        self.expenses_clear_form = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Clear", command=clear_form_expenses)
-        self.expenses_clear_form.grid(row=7, column=0, sticky="w", pady=(10, 190), padx=(130, 50))
+        # self.expenses_clear_form = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Clear", command=clear_form_expenses)
+        # self.expenses_clear_form.grid(row=7, column=0, sticky="w", pady=(10, 190), padx=(130, 50))
 
-        self.expenses_select_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Select Rec", command=select_record)
-        self.expenses_select_record.grid(row=8, column=0, sticky="w", pady=10, padx=(130, 50))
+        # self.expenses_select_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Select Rec", command=select_record)
+        # self.expenses_select_record.grid(row=8, column=0, sticky="w", pady=10, padx=(130, 50))
 
-        self.expenses_change_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Change Rec", command=change_record)
-        self.expenses_change_record.grid(row=9, column=0, sticky="w", pady=10, padx=50)
-        self.expenses_delete_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Delete Rec", command=delete)
-        self.expenses_delete_record.grid(row=9, column=0, sticky="w", pady=10, padx=(215, 50))
+        # self.expenses_change_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Change Rec", command=change_record)
+        # self.expenses_change_record.grid(row=9, column=0, sticky="w", pady=10, padx=50)
+
+        self.expenses_delete_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Delete Rec", command=self.delete_record)
+        self.expenses_delete_record.grid(row=7, column=0, sticky="w", pady=10, padx=(130, 50))
 
         # Subscriptions frame and elements
         self.subs_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -228,6 +195,7 @@ class App(customtkinter.CTk):
         self.subs_frame.grid_rowconfigure(7, weight=0)
 
         # Tab view for subscriptions
+
         self.tab_view_monthly = customtkinter.CTkTabview(self.subs_frame, width=575, height=780)
         self.tab_view_monthly.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
         self.tab_view_yearly = customtkinter.CTkTabview(self.subs_frame, width=575, height=780)
@@ -236,55 +204,51 @@ class App(customtkinter.CTk):
         self.tab_view_monthly.add("Monthly")
         self.tab_view_yearly.add("Yearly")
 
-        self.sns_monthly_lab1 = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_monthly_lab1.grid(row=0, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_monthly_ent1 = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
-        self.sns_monthly_ent1.grid(row=0, column=1, padx=20, pady=10, sticky="e")
+        self.sns_monthly_name_lab = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_monthly_name_lab.grid(row=0, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_monthly_name_ent = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
+        self.sns_monthly_name_ent.grid(row=0, column=1, padx=20, pady=10, sticky="e")
 
-        self.sns_monthly_lab2 = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_monthly_lab2.grid(row=1, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sms_monthly_ent2 = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
-        self.sms_monthly_ent2.grid(row=1, column=1, padx=20, pady=10, sticky="e")
+        self.sns_monthly_price_lab = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_monthly_price_lab.grid(row=1, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_monthly_price_ent = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
+        self.sns_monthly_price_ent.grid(row=1, column=1, padx=20, pady=10, sticky="e")
 
-        self.sms_monthly_lab3 = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Date:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sms_monthly_lab3.grid(row=2, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_monthly_ent3 = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
-        self.sns_monthly_ent3.grid(row=2, column=1, padx=20, pady=10, sticky="e")
+        self.sns_monthly_date_lab = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Date:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_monthly_date_lab.grid(row=2, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_monthly_date_ent = customtkinter.CTkEntry(master=self.tab_view_monthly.tab("Monthly"), width=200)
+        self.sns_monthly_date_ent.grid(row=2, column=1, padx=20, pady=10, sticky="e")
 
-        self.sns_monthly_lab4 = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_monthly_lab4.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_monthy_lab4 = customtkinter.CTkOptionMenu(master=self.tab_view_monthly.tab("Monthly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
-        self.sns_monthy_lab4.grid(row=3, column=1, padx=20, pady=10)
+        self.sns_monthly_curr_lab = customtkinter.CTkLabel(master=self.tab_view_monthly.tab("Monthly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_monthly_curr_lab.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_monthy_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_view_monthly.tab("Monthly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.sns_monthy_curr_ent.grid(row=3, column=1, padx=20, pady=10)
 
         self.sns_monthly_datenow = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Current Date", command=self.set_current_date_monthly)
         self.sns_monthly_datenow.grid(row=4, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
-        self.sns_monthly_add = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Add", command=None)
-        self.sns_monthly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
-        self.sns_yearly_lab1 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_yearly_lab1.grid(row=0, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_yearly_ent1 = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
-        self.sns_yearly_ent1.grid(row=0, column=1, padx=20, pady=10, sticky="e")
+        self.sns_yearly_name_lab = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Name:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_yearly_name_lab.grid(row=0, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_yearly_name_ent = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
+        self.sns_yearly_name_ent.grid(row=0, column=1, padx=20, pady=10, sticky="e")
 
-        self.sns_yearly_lab2 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_yearly_lab2.grid(row=1, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sms_yearly_ent2 = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
-        self.sms_yearly_ent2.grid(row=1, column=1, padx=20, pady=10, sticky="e")
+        self.sms_yearly_date_lab = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Date:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sms_yearly_date_lab.grid(row=1, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_yearly_date_ent = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
+        self.sns_yearly_date_ent.grid(row=1, column=1, padx=20, pady=10, sticky="e")
 
-        self.sms_yearly_lab3 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Date:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sms_yearly_lab3.grid(row=2, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_yearly_ent3 = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
-        self.sns_yearly_ent3.grid(row=2, column=1, padx=20, pady=10, sticky="e")
+        self.sns_yearly_price_lab = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Price:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_yearly_price_lab.grid(row=2, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_yearly_price_ent = customtkinter.CTkEntry(master=self.tab_view_yearly.tab("Yearly"), width=200)
+        self.sns_yearly_price_ent.grid(row=2, column=1, padx=20, pady=10, sticky="e")
 
-        self.sns_yearly_lab4 = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.sns_yearly_lab4.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
-        self.sns_yearly_lab4 = customtkinter.CTkOptionMenu(master=self.tab_view_yearly.tab("Yearly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
-        self.sns_yearly_lab4.grid(row=3, column=1, padx=20, pady=10)
+        self.sns_yearly_curr_lab = customtkinter.CTkLabel(master=self.tab_view_yearly.tab("Yearly"), text="Currency:", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sns_yearly_curr_lab.grid(row=3, column=0, padx=(90, 20), pady=10, sticky="w")
+        self.sns_yearly_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_view_yearly.tab("Yearly"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.sns_yearly_curr_ent.grid(row=3, column=1, padx=20, pady=10)
 
         self.sns_yearly_datenow = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Current Date", command=self.set_current_date_yearly)
         self.sns_yearly_datenow.grid(row=4, column=0, sticky="w", padx=(90, 20), pady=20, ipadx=10)
-        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=None)
-        self.sns_yearly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
         self.tab_view_monthly_tree = ttk.Treeview(self.subs_frame)
         self.tab_view_monthly_tree.grid(row=0, column=0, padx=20, pady=(300, 10), sticky="nesw")
@@ -314,41 +278,13 @@ class App(customtkinter.CTk):
         self.tab_view_yearly_tree.heading("date", text="Date", anchor=CENTER)
         self.tab_view_yearly_tree.heading("price", text="Price", anchor=CENTER)
 
-        def input_record_monthly():
-            global count
-            self.tab_view_monthly_tree.insert(parent='', index='end', iid=str(count), text='', values=(self.sns_monthly_ent1.get(), self.sns_monthly_ent3.get(), self.sms_monthly_ent2.get()))
-            count += 1
-            clear_form_montly()
+        self.subs_table('monthly')
+        self.subs_table('yearly')
 
-        def numbers_only_and_filled_monthly():
-            if int(self.sms_monthly_ent2.get()):
-                if self.sns_monthly_ent1.get() and self.sns_monthly_ent3.get() != "":
-                    input_record_monthly()
-            else:
-                self.sns_monthly_add.configure(command=0)
-
-        def clear_form_montly():
-            self.sns_monthly_ent1.delete(0, END)
-            self.sns_monthly_ent3.delete(0, END)
-            self.sms_monthly_ent2.delete(0, END)
-
-        def input_record_yearly():
-            global count
-            self.tab_view_yearly_tree.insert(parent='', index='end', iid=str(count), text='', values=(self.sns_yearly_ent1.get(), self.sns_yearly_ent3.get(), self.sms_yearly_ent2.get()))
-            count += 1
-            clear_form_yearly()
-
-        def numbers_only_and_filled_yearly():
-            if int(self.sms_yearly_ent2.get()):
-                if self.sns_yearly_ent1.get() and self.sns_yearly_ent3.get() != "":
-                    input_record_yearly()
-            else:
-                self.sns_yearly_add.configure(command=0)
-
-        def clear_form_yearly():
-            self.sns_yearly_ent1.delete(0, END)
-            self.sns_yearly_ent3.delete(0, END)
-            self.sms_yearly_ent2.delete(0, END)
+        self.sns_monthly_add = customtkinter.CTkButton(master=self.tab_view_monthly.tab("Monthly"), text="Add", command=self.numbers_only_and_filled_monthly)
+        self.sns_monthly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
+        self.sns_yearly_add = customtkinter.CTkButton(master=self.tab_view_yearly.tab("Yearly"), text="Add", command=self.numbers_only_and_filled_yearly)
+        self.sns_yearly_add.grid(row=4, column=1, sticky="e", padx=20, pady=20, ipadx=10)
 
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
@@ -373,6 +309,143 @@ class App(customtkinter.CTk):
         else:
             self.subs_frame.grid_forget()
 
+    def subs_table(self, table):
+        if table == 'monthly':
+            table_name = 'monthly_subs'
+            tree = self.tab_view_monthly_tree
+        elif table == 'yearly':
+            table_name = 'yearly_subs'
+            tree = self.tab_view_yearly_tree
+        res = self.db_cur.execute(f"SELECT * FROM {table_name}")
+        datas = res.fetchall()
+        for record in datas:
+            symbol = self.curr_type_to_symbol(record[4])
+            price = f"{record[2]} {symbol}"
+            if record[0] % 2 == 0:
+                tree.insert(parent='', index='end', values=(record[1], record[3], price), tags="light")
+            else:
+                tree.insert(parent='', index='end', values=(record[1], record[3], price), tags="dark")
+        tree.tag_configure("light", background="#1f6aa5")
+        tree.tag_configure("dark", background="#212121")
+
+    def numbers_only_and_filled_monthly(self):
+        if float(self.sns_monthly_price_ent.get()):
+            if self.sns_monthly_name_ent.get() and self.sns_monthly_date_ent.get() != "":
+                self.input_record('monthly')
+        else:
+            self.sns_monthly_add.configure(command=0)
+
+    def clear_form_fields(self, frame):
+        if frame == 'expenses':
+            self.expenses_name_entry.delete(0, END)
+            self.expenses_type_entry.set("Food")
+            # self.expenses_curr_ent.set() set it to default
+            self.expenses_date_entry.delete(0, END)
+            self.expenses_price_entry.delete(0, END)
+        elif frame == 'monthly':
+            self.sns_monthly_name_ent.delete(0, END)
+            self.sns_monthly_date_ent.delete(0, END)
+            self.sns_monthly_price_ent.delete(0, END)
+        elif frame == 'yearly':
+            self.sns_yearly_name_ent.delete(0, END)
+            self.sns_yearly_date_ent.delete(0, END)
+            self.sns_yearly_price_ent.delete(0, END)
+
+    def numbers_only_and_filled_yearly(self):
+        if float(self.sns_yearly_price_ent.get()):
+            if self.sns_yearly_name_ent.get() and self.sns_yearly_date_ent.get() != "":
+                self.input_record('yearly')
+        else:
+            self.sns_yearly_add.configure(command=0)
+
+    def delete_record(self):
+        x = self.tab_view_history.selection()
+        for record in x:
+            value = self.tab_view_history.item(record)["values"]
+            price = value[3].split(' ')[0]
+            query = f"DELETE FROM expenses WHERE name='{value[0]}' AND type='{value[1]}' AND date='{value[2]}' AND price='{price}'"
+            self.db_con.execute(query)
+            self.db_con.commit()
+            self.tab_view_history.delete(record)
+
+    def numbers_only_and_filled(self):
+        if float(self.expenses_price_entry.get()):
+            if self.expenses_name_entry.get() and self.expenses_date_entry.get() != "":
+                self.input_record_expenses()
+        else:
+            self.expenses_save.configure(command=0)
+
+    def curr_type_to_symbol(self, curr_type):
+        match curr_type:
+            case "Euro [EUR]":
+                return '€'
+            case "Dollar [USD]":
+                return '$'
+            case "Forint [HUF]":
+                return 'Ft'
+            case  "Pound [GBP]":
+                return '£'
+
+    def expenses_table(self):
+        res = self.db_cur.execute("SELECT * FROM expenses")
+        datas = res.fetchall()
+        for record in datas:
+            symbol = self.curr_type_to_symbol(record[5])
+            price = f"{record[4]} {symbol}"
+            if record[0] % 2 == 0:
+                self.tab_view_history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="light")
+            else:
+                self.tab_view_history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="dark")
+        self.tab_view_history.tag_configure("light", background="#1f6aa5")
+        self.tab_view_history.tag_configure("dark", background="#212121")
+
+    def refresh_expenses_table(self):
+        res = self.db_cur.execute("SELECT id, name, type, date, price, curr_type FROM expenses ORDER BY id DESC LIMIT 1")
+        datas = res.fetchone()
+        symbol = self.curr_type_to_symbol(datas[5])
+        price = f"{datas[4]} {symbol}"
+        if datas[0] % 2 == 0:
+            self.tab_view_history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="light")
+        else:
+            self.tab_view_history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="dark")
+        self.tab_view_history.tag_configure("light", background="#1f6aa5")
+        self.tab_view_history.tag_configure("dark", background="#212121")
+
+    def input_record_expenses(self):
+        query = f"INSERT INTO expenses (name, type, date, price, curr_type) VALUES ('{self.expenses_name_entry.get()}', '{self.expenses_type_entry.get()}', '{self.expenses_date_entry.get()}', '{self.expenses_price_entry.get()}', '{self.expenses_curr_ent.get()}')"
+        self.db_cur.execute(query)
+        self.db_con.commit()
+        self.refresh_expenses_table()
+        self.clear_form_fields('expenses')
+
+    def input_record(self, table):
+        if table == 'yearly':
+            db_table = 'yearly_subs'
+            curr_table = self.tab_view_yearly_tree
+            entries = [self.sns_yearly_name_ent.get(), self.sns_yearly_date_ent.get(), self.sns_yearly_price_ent.get(), self.sns_yearly_curr_ent.get()]
+        elif table == 'monthly':
+            db_table = 'monthly_subs'
+            curr_table = self.tab_view_monthly_tree
+            entries = [self.sns_monthly_name_ent.get(), self.sns_monthly_date_ent.get(), self.sns_monthly_price_ent.get(), self.sns_monthy_curr_ent.get()]
+        query = f"INSERT INTO {db_table} (name, date, price, curr_type) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}')"
+        self.db_cur.execute(query)
+        self.db_con.commit()
+        self.refresh_sub_table(curr_table, db_table)
+        self.clear_form_fields(table)
+
+    def refresh_sub_table(self, table, db_table):
+        curr_table: ttk.Treeview = table
+        res = self.db_cur.execute(f"SELECT id, name, price, date, curr_type FROM {db_table} ORDER BY id DESC LIMIT 1")
+        datas = res.fetchone()
+        symbol = self.curr_type_to_symbol(datas[4])
+        price = f"{datas[3]} {symbol}"
+        if datas[0] % 2 == 0:
+            curr_table.insert(parent='', index='end', values=(datas[1], price, datas[4], price), tags="light")
+        else:
+            curr_table.insert(parent='', index='end', values=(datas[1], price, datas[4], price), tags="dark")
+        curr_table.tag_configure("light", background="#1f6aa5")
+        curr_table.tag_configure("dark", background="#212121")
+
     # Swap Frame functions
     def expenses_button_event(self):
         self.select_frame_by_name("Expenses")
@@ -394,13 +467,13 @@ class App(customtkinter.CTk):
 
     def set_current_date_monthly(self):
         date = dt.datetime.now()
-        self.sns_monthly_ent3.delete(0, 'end')
-        self.sns_monthly_ent3.insert(0, f'{date:%d %B %Y}')
+        self.sns_monthly_date_ent.delete(0, 'end')
+        self.sns_monthly_date_ent.insert(0, f'{date:%d %B %Y}')
 
     def set_current_date_yearly(self):
         date = dt.datetime.now()
-        self.sns_yearly_ent3.delete(0, 'end')
-        self.sns_yearly_ent3.insert(0, f'{date:%d %B %Y}')
+        self.sns_yearly_date_ent.delete(0, 'end')
+        self.sns_yearly_date_ent.insert(0, f'{date:%d %B %Y}')
 
     # Validate fucntion for Subs & Sum menu
     # def validate(self):
