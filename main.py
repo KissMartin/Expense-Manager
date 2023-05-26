@@ -55,43 +55,10 @@ class App(customtkinter.CTk):
         self.currency_entry.grid(row=1, column=1, padx=20, pady=10, sticky="sw")
 
         # Pie chart
-        self.pie_charts_canvas = customtkinter.CTkCanvas(self.stats_charts.tab("Charts"), width=500, height=150, bg="#1a1a1a", highlightbackground='#1a1a1a')
-        self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
-        self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
-        self.pie_chart = self.figure.add_subplot(111)  # type: ignore
-        self.pie_labels = ['Categ1', 'Categ2', 'Categ3', 'Categ4']
-        self.explode = (0, 0.0, 0.1, 0)
-        self.pie_sizes = [15, 30, 45, 10]
-        self.pie_chart.pie(self.pie_sizes, labels=self.pie_labels, autopct='%1.1f%%', shadow=True, startangle=90, explode=self.explode)
-        self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
-        for text in self.pie_chart.texts:  # type: ignore
-            text.set_color('white')
-        self.pie_chart.set_facecolor("#1a1a1a")
-        self.pie_chart.tick_params(axis='x', colors='white')
-        self.pie_chart.tick_params(axis='y', colors='white')
-        self.pie_chart.xaxis.label.set_color('white')
-        self.pie_chart.yaxis.label.set_color('white')
-        self.pie_chart_canvas.draw()
-        self.pie_chart_canvas.get_tk_widget().grid(row=1, column=0, padx=20, sticky="nsew")
+        self.generate_pie_chart()
 
         # Bar chart
-        self.figure2 = plt.figure(figsize=(5, 4), dpi=100, facecolor="#1a1a1a")
-        self.bar_chart = self.figure2.add_subplot(111)  # type: ignore
-        self.bar_chart.bar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-        self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.pie_charts_canvas)
-        self.bar_chart.set_facecolor("#1a1a1a")
-        self.bar_chart.set_ylabel('Amount earned')
-        self.bar_chart.set_xlabel('Month')
-        self.bar_chart.tick_params(axis='x', colors='white')
-        self.bar_chart.tick_params(axis='y', colors='white')
-        self.bar_chart.xaxis.label.set_color('white')
-        self.bar_chart.yaxis.label.set_color('white')
-        self.bar_chart.spines['bottom'].set_color('white')
-        self.bar_chart.spines['right'].set_color('white')
-        self.bar_chart.spines['left'].set_color('white')
-        self.bar_chart.spines['top'].set_color('white')
-        self.bar_chart_canvas.draw()
-        self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
+        self.generate_bar_chart()
 
         # Expenses Frame
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -261,6 +228,70 @@ class App(customtkinter.CTk):
 
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
+
+    def generate_pie_chart(self):
+        res = self.db_cur.execute("SELECT type FROM expenses")
+        datas = res.fetchall()
+        categories = {
+            "Housing": 0,
+            "Clothing": 0,
+            "Food": 0,
+            "Entertainment": 0,
+            "Transportation": 0,
+            "Other": 0
+        }
+        cat_sum = 0
+        for data in datas:
+            categories[data[0]] += 1
+            cat_sum += 1
+        self.pie_charts_canvas = customtkinter.CTkCanvas(self.stats_charts.tab("Charts"), width=500, height=150, bg="#212121", highlightbackground='#1a1a1a')
+        self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
+        self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#212121")
+        self.pie_chart = self.figure.add_subplot(111)  # type: ignore
+        self.pie_labels = []
+        for key, value in categories.items():
+            if value != 0:
+                self.pie_labels.append(key)
+        self.pie_sizes = []
+        for key, value in categories.items():
+            if value != 0 and key in self.pie_labels:
+                self.pie_sizes.append(value / cat_sum)
+        self.explode = []
+        for i in range(len(self.pie_sizes)):
+            if self.pie_sizes[i] == max(self.pie_sizes):
+                self.explode.append(0.1)
+            else:
+                self.explode.append(0)
+        self.pie_chart.pie(self.pie_sizes, labels=self.pie_labels, autopct='%1.1f%%', shadow=True, startangle=90, explode=self.explode)
+        self.pie_chart_canvas = FigureCanvasTkAgg(self.figure, self.pie_charts_canvas)
+        for text in self.pie_chart.texts:  # type: ignore
+            text.set_color('white')
+        self.pie_chart.set_facecolor("#212121")
+        self.pie_chart.tick_params(axis='x', colors='white')
+        self.pie_chart.tick_params(axis='y', colors='white')
+        self.pie_chart.xaxis.label.set_color('white')
+        self.pie_chart.yaxis.label.set_color('white')
+        self.pie_chart_canvas.draw()
+        self.pie_chart_canvas.get_tk_widget().grid(row=1, column=0, padx=20, sticky="nsew")
+
+    def generate_bar_chart(self):
+        self.figure2 = plt.figure(figsize=(5, 4), dpi=100, facecolor="#212121")
+        self.bar_chart = self.figure2.add_subplot(111)  # type: ignore
+        self.bar_chart.bar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        self.bar_chart_canvas = FigureCanvasTkAgg(self.figure2, self.pie_charts_canvas)
+        self.bar_chart.set_facecolor("#212121")
+        self.bar_chart.set_ylabel('Amount earned')
+        self.bar_chart.set_xlabel('Month')
+        self.bar_chart.tick_params(axis='x', colors='white')
+        self.bar_chart.tick_params(axis='y', colors='white')
+        self.bar_chart.xaxis.label.set_color('white')
+        self.bar_chart.yaxis.label.set_color('white')
+        self.bar_chart.spines['bottom'].set_color('white')
+        self.bar_chart.spines['right'].set_color('white')
+        self.bar_chart.spines['left'].set_color('white')
+        self.bar_chart.spines['top'].set_color('white')
+        self.bar_chart_canvas.draw()
+        self.bar_chart_canvas.get_tk_widget().grid(row=1, column=1, padx=20, sticky="nsew")
 
     def select_frame_by_name(self, name: str):
 
@@ -440,10 +471,8 @@ class App(customtkinter.CTk):
 
     def stats_button_event(self):
         self.select_frame_by_name("Statistics")
-        self.generate_update_chart()
-
-    def generate_update_chart(self):
-        pass
+        self.generate_pie_chart()
+        self.generate_bar_chart()
 
     def sub_button_event(self):
         self.select_frame_by_name("Subscriptions")
