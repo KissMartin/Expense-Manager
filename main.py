@@ -1,6 +1,7 @@
 import datetime as dt
 import sqlite3
 from tkinter import CENTER, END, NO, ttk
+import tkcalendar
 import customtkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -55,6 +56,10 @@ class App(customtkinter.CTk):
         self.currency.grid(row=1, column=0, padx=20, pady=10, sticky="sw")
         self.currency_entry = customtkinter.CTkOptionMenu(self.stats_numbers.tab("Stats"), values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
         self.currency_entry.grid(row=1, column=1, padx=20, pady=10, sticky="sw")
+        self.date_button = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='', command=self.date_select, fg_color="#343638", border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
+        self.date_button.grid(row=2, column=0, padx=20, pady=10, sticky="sw")
+        self.date_button.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
+        self.toplevel_window = None
 
         # Income frame
         self.income_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -292,6 +297,28 @@ class App(customtkinter.CTk):
 
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
+
+    def date_select(self):
+        curr_year = dt.datetime.now().year
+        curr_month = dt.datetime.now().month
+        curr_day = dt.datetime.now().day
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = customtkinter.CTkToplevel(self)
+            self.toplevel_window.title("Date Selector")
+            self.toplevel_window.geometry("300x300")
+            self.toplevel_window.resizable(False, False)
+            calendar = tkcalendar.Calendar(self.toplevel_window, selectmode="day", year=curr_year, month=curr_month, day=curr_day, date_pattern="y-mm-dd")
+            calendar.grid(row=0, column=0, padx=(35, 20), pady=20)
+            save_date = customtkinter.CTkButton(self.toplevel_window, text="Set date", command=lambda: self.set_date(calendar))
+            save_date.grid(row=1, column=0, padx=(35, 20), pady=20)
+        else:
+            self.toplevel_window.focus()
+
+    def set_date(self, calendar: tkcalendar.Calendar):
+        date = calendar.get_date()
+        self.date_button.configure(text=f"{date}")
+        self.toplevel_window.withdraw()
+        self.toplevel_window = None
 
     def gen_expense_chart(self):
         res = self.db_cur.execute("SELECT COUNT(type), type FROM expenses GROUP BY type")
