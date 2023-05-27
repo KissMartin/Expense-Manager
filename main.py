@@ -30,12 +30,14 @@ class App(customtkinter.CTk):
         # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
-        self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=self.expenses_button_event)
+        self.expenses_button = customtkinter.CTkButton(self.nav_frame, text='Expenses', command=lambda: self.frame_button_events('expenses'))
         self.expenses_button.grid(row=1, column=0, padx=20, pady=10, sticky="ewn")
-        self.stats_button = customtkinter.CTkButton(self.nav_frame, text='Statistics', command=self.stats_button_event)  # + update charts
-        self.stats_button.grid(row=2, column=0, padx=20, pady=10, sticky="enw")
-        self.subs_button = customtkinter.CTkButton(self.nav_frame, text='Subscriptions', command=self.sub_button_event)
-        self.subs_button.grid(row=3, column=0, padx=20, pady=10, sticky="ewn")
+        self.income_button = customtkinter.CTkButton(self.nav_frame, text='Income', command=lambda: self.frame_button_events("income"))
+        self.income_button.grid(row=2, column=0, padx=20, pady=10, sticky="ewn")
+        self.stats_button = customtkinter.CTkButton(self.nav_frame, text='Statistics', command=lambda: self.frame_button_events("statistics"))
+        self.stats_button.grid(row=3, column=0, padx=20, pady=10, sticky="enw")
+        self.subs_button = customtkinter.CTkButton(self.nav_frame, text='Subscriptions', command=lambda: self.frame_button_events("subscriptions"))
+        self.subs_button.grid(row=4, column=0, padx=20, pady=10, sticky="ewn")
 
         # Stats Frame
         self.stats_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -60,6 +62,74 @@ class App(customtkinter.CTk):
         # Bar chart
         self.generate_bar_chart()
 
+        # Income frame
+        self.income_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.income_frame.grid_columnconfigure(0, weight=0)
+
+        self.style = ttk.Style()
+        self.style.theme_use("default")
+        self.style.configure("Treeview", background="#1f6aa5", foreground="white", rowheight=35, fieldbackground="#212121")
+
+        self.tab_income_new = customtkinter.CTkTabview(self.income_frame, width=300, height=780)
+        self.tab_income_new.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
+        self.tab_income_hist = customtkinter.CTkTabview(self.income_frame, width=710, height=780)
+        self.tab_income_hist.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
+        self.income_history = ttk.Treeview(self.income_frame)
+        self.income_history.grid(row=0, column=1, padx=30, pady=(50, 10), sticky="nesw")
+
+        self.tab_income_new.add("New Income")
+        self.tab_income_hist.add("Income History")
+        self.income_history['columns'] = ('name', 'type', 'date', 'price')
+        self.income_history.column("#0", width=0, stretch=NO)
+        self.income_history.column("name", anchor=CENTER, width=80)
+        self.income_history.column("type", anchor=CENTER, width=80)
+        self.income_history.column("date", anchor=CENTER, width=80)
+        self.income_history.column("price", anchor=CENTER, width=80)
+
+        self.income_history.heading("#0", text="", anchor=CENTER)
+        self.income_history.heading("name", text="Name", anchor=CENTER)
+        self.income_history.heading("type", text="Type", anchor=CENTER)
+        self.income_history.heading("date", text="Date", anchor=CENTER)
+        self.income_history.heading("price", text="Price", anchor=CENTER)
+
+        self.history_tables('income')
+
+        self.income_main_title = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.income_main_title.grid(row=0, column=0, padx=110, pady=50, sticky="w")
+
+        self.income_name = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="Name:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.income_name.grid(row=1, column=0, padx=50, pady=10, sticky="w")
+        self.income_name_entry = customtkinter.CTkEntry(master=self.tab_income_new.tab("New Income"), width=200)
+        self.income_name_entry.grid(row=1, column=0, padx=(140, 50), pady=10)
+
+        self.income_type = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="Type:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.income_type.grid(row=2, column=0, padx=50, pady=10, sticky="w")
+        self.income_type_entry = customtkinter.CTkOptionMenu(master=self.tab_income_new.tab("New Income"), width=200, values=["Salary, Wage", "Interest", "Commission", "Gift", "Other"])
+        self.income_type_entry.grid(row=2, column=0, padx=(140, 50), pady=10)
+
+        self.income_curr = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="Currency:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.income_curr.grid(row=3, column=0, padx=50, pady=10, sticky="w")
+        self.income_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_income_new.tab("New Income"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.income_curr_ent.grid(row=3, column=0, padx=(140, 50), pady=10)
+
+        self.income_date = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.income_date.grid(row=4, column=0, padx=50, pady=10, sticky="w")
+        self.income_date_entry = customtkinter.CTkEntry(master=self.tab_income_new.tab("New Income"), width=200)
+        self.income_date_entry.grid(row=4, column=0, padx=(140, 50), pady=10)
+
+        self.income_amount = customtkinter.CTkLabel(master=self.tab_income_new.tab("New Income"), text="Amount:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.income_amount.grid(row=5, column=0, padx=50, pady=10, sticky="w")
+        self.income_amount_entry = customtkinter.CTkEntry(master=self.tab_income_new.tab("New Income"), width=200)
+        self.income_amount_entry.grid(row=5, column=0, padx=(140, 50), pady=10)
+
+        self.income_current_date = customtkinter.CTkButton(master=self.tab_income_new.tab("New Income"), text="Current Date", command=lambda: self.set_current_date("income"))
+        self.income_current_date.grid(row=6, column=0, sticky="w", pady=10, padx=50)
+        self.income_save = customtkinter.CTkButton(master=self.tab_income_new.tab("New Income"), text="Save", command=lambda: self.validate_inputs('income'))
+        self.income_save.grid(row=6, column=0, sticky="w", pady=10, padx=(215, 50))
+
+        self.income_delete_record = customtkinter.CTkButton(master=self.tab_income_new.tab("New Income"), text="Delete Rec", command=lambda: self.delete_record_histories('income'))
+        self.income_delete_record.grid(row=7, column=0, sticky="w", pady=10, padx=(130, 50))
+
         # Expenses Frame
         self.expenses_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.expenses_frame.grid_columnconfigure(0, weight=0)
@@ -69,65 +139,65 @@ class App(customtkinter.CTk):
         self.style.theme_use("default")
         self.style.configure("Treeview", background="#1f6aa5", foreground="white", rowheight=35, fieldbackground="#212121")
 
-        self.tab_view_new = customtkinter.CTkTabview(self.expenses_frame, width=300, height=780)
-        self.tab_view_new.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
-        self.history_table = customtkinter.CTkTabview(self.expenses_frame, width=710, height=780)
-        self.history_table.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
-        self.tab_view_history = ttk.Treeview(self.expenses_frame)
-        self.tab_view_history.grid(row=0, column=1, padx=30, pady=(50, 10), sticky="nesw")
+        self.tab_new_expense = customtkinter.CTkTabview(self.expenses_frame, width=300, height=780)
+        self.tab_new_expense.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
+        self.tab_expense_hist = customtkinter.CTkTabview(self.expenses_frame, width=710, height=780)
+        self.tab_expense_hist.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
+        self.expense_history = ttk.Treeview(self.expenses_frame)
+        self.expense_history.grid(row=0, column=1, padx=30, pady=(50, 10), sticky="nesw")
 
-        self.tab_view_new.add("New")
-        self.history_table.add("History")
-        self.tab_view_history['columns'] = ('name', 'type', 'date', 'price')
-        self.tab_view_history.column("#0", width=0, stretch=NO)
-        self.tab_view_history.column("name", anchor=CENTER, width=80)
-        self.tab_view_history.column("type", anchor=CENTER, width=80)
-        self.tab_view_history.column("date", anchor=CENTER, width=80)
-        self.tab_view_history.column("price", anchor=CENTER, width=80)
+        self.tab_new_expense.add("New Expense")
+        self.tab_expense_hist.add("Expense History")
+        self.expense_history['columns'] = ('name', 'type', 'date', 'price')
+        self.expense_history.column("#0", width=0, stretch=NO)
+        self.expense_history.column("name", anchor=CENTER, width=80)
+        self.expense_history.column("type", anchor=CENTER, width=80)
+        self.expense_history.column("date", anchor=CENTER, width=80)
+        self.expense_history.column("price", anchor=CENTER, width=80)
 
-        self.tab_view_history.heading("#0", text="", anchor=CENTER)
-        self.tab_view_history.heading("name", text="Name", anchor=CENTER)
-        self.tab_view_history.heading("type", text="Type", anchor=CENTER)
-        self.tab_view_history.heading("date", text="Date", anchor=CENTER)
-        self.tab_view_history.heading("price", text="Price", anchor=CENTER)
+        self.expense_history.heading("#0", text="", anchor=CENTER)
+        self.expense_history.heading("name", text="Name", anchor=CENTER)
+        self.expense_history.heading("type", text="Type", anchor=CENTER)
+        self.expense_history.heading("date", text="Date", anchor=CENTER)
+        self.expense_history.heading("price", text="Price", anchor=CENTER)
 
-        self.expenses_table()
+        self.history_tables("expenses")
 
-        self.expenses_main_title = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
+        self.expenses_main_title = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.expenses_main_title.grid(row=0, column=0, padx=110, pady=50, sticky="w")
 
-        self.expenses_name = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Name:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_name = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="Name:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.expenses_name.grid(row=1, column=0, padx=50, pady=10, sticky="w")
-        self.expenses_name_entry = customtkinter.CTkEntry(master=self.tab_view_new.tab("New"), width=200)
+        self.expenses_name_entry = customtkinter.CTkEntry(master=self.tab_new_expense.tab("New Expense"), width=200)
         self.expenses_name_entry.grid(row=1, column=0, padx=(140, 50), pady=10)
 
-        self.expenses_type = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Type:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_type = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="Type:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.expenses_type.grid(row=2, column=0, padx=50, pady=10, sticky="w")
-        self.expenses_type_entry = customtkinter.CTkOptionMenu(master=self.tab_view_new.tab("New"), width=200, values=["Housing", "Clothing", "Food", "Entertainment", "Transportation", "Other"])
+        self.expenses_type_entry = customtkinter.CTkOptionMenu(master=self.tab_new_expense.tab("New Expense"), width=200, values=["Housing", "Clothing", "Food", "Entertainment", "Transportation", "Other"])
         self.expenses_type_entry.grid(row=2, column=0, padx=(140, 50), pady=10)
         self.expenses_type_entry.set("Food")
 
-        self.expenses_curr = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Currency:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_curr = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="Currency:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.expenses_curr.grid(row=3, column=0, padx=50, pady=10, sticky="w")
-        self.expenses_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_view_new.tab("New"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
+        self.expenses_curr_ent = customtkinter.CTkOptionMenu(master=self.tab_new_expense.tab("New Expense"), width=200, values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
         self.expenses_curr_ent.grid(row=3, column=0, padx=(140, 50), pady=10)
 
-        self.expenses_date = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_date = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="Date:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.expenses_date.grid(row=4, column=0, padx=50, pady=10, sticky="w")
-        self.expenses_date_entry = customtkinter.CTkEntry(master=self.tab_view_new.tab("New"), width=200)
+        self.expenses_date_entry = customtkinter.CTkEntry(master=self.tab_new_expense.tab("New Expense"), width=200)
         self.expenses_date_entry.grid(row=4, column=0, padx=(140, 50), pady=10)
 
-        self.expenses_price = customtkinter.CTkLabel(master=self.tab_view_new.tab("New"), text="Price:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.expenses_price = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="Price:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.expenses_price.grid(row=5, column=0, padx=50, pady=10, sticky="w")
-        self.expenses_price_entry = customtkinter.CTkEntry(master=self.tab_view_new.tab("New"), width=200)
+        self.expenses_price_entry = customtkinter.CTkEntry(master=self.tab_new_expense.tab("New Expense"), width=200)
         self.expenses_price_entry.grid(row=5, column=0, padx=(140, 50), pady=10)
 
-        self.expenses_current_date = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Current Date", command=lambda: self.set_current_date("expenses"))
+        self.expenses_current_date = customtkinter.CTkButton(master=self.tab_new_expense.tab("New Expense"), text="Current Date", command=lambda: self.set_current_date("expenses"))
         self.expenses_current_date.grid(row=6, column=0, sticky="w", pady=10, padx=50)
-        self.expenses_save = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Save", command=lambda: self.validate_inputs('expenses'))
+        self.expenses_save = customtkinter.CTkButton(master=self.tab_new_expense.tab("New Expense"), text="Save", command=lambda: self.validate_inputs('expenses'))
         self.expenses_save.grid(row=6, column=0, sticky="w", pady=10, padx=(215, 50))
 
-        self.expenses_delete_record = customtkinter.CTkButton(master=self.tab_view_new.tab("New"), text="Delete Rec", command=self.delete_record_expenses)
+        self.expenses_delete_record = customtkinter.CTkButton(master=self.tab_new_expense.tab("New Expense"), text="Delete Rec", command=lambda: self.delete_record_histories("expenses"))
         self.expenses_delete_record.grid(row=7, column=0, sticky="w", pady=10, padx=(130, 50))
 
         # Subscriptions frame and elements
@@ -283,6 +353,7 @@ class App(customtkinter.CTk):
     def select_frame_by_name(self, name: str):
 
         self.expenses_button.configure(fg_color=("gray75", "gray25") if name == "Expenses" else "#1f6aa5")
+        self.income_button.configure(fg_color=("gray75", "gray25") if name == "Income" else "#1f6aa5")
         self.stats_button.configure(fg_color=("gray75", "gray25") if name == "Statistics" else "#1f6aa5")
         self.subs_button.configure(fg_color=("gray75", "gray25") if name == "Subscriptions" else "#1f6aa5")  # ff8000 esetleges szín
 
@@ -290,6 +361,10 @@ class App(customtkinter.CTk):
             self.expenses_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.expenses_frame.grid_forget()
+        if name == "Income":
+            self.income_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.income_frame.grid_forget()
         if name == "Statistics":
             self.stats_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -299,7 +374,7 @@ class App(customtkinter.CTk):
         else:
             self.subs_frame.grid_forget()
 
-    def subs_table(self, table):
+    def subs_table(self, table: str):
         if table == 'monthly':
             table_name = 'monthly_subs'
             tree = self.tab_view_monthly_tree
@@ -312,29 +387,34 @@ class App(customtkinter.CTk):
             symbol = self.curr_type_to_symbol(record[4])
             price = f"{record[2]} {symbol}"
             if record[0] % 2 == 0:
-                tree.insert(parent='', index='end', values=(record[1], record[3], price), tags="light")
+                tree.insert(parent='', index='end', values=(record[1], record[2], price), tags="light")
             else:
-                tree.insert(parent='', index='end', values=(record[1], record[3], price), tags="dark")
+                tree.insert(parent='', index='end', values=(record[1], record[2], price), tags="dark")
         tree.tag_configure("light", background="#1f6aa5")
         tree.tag_configure("dark", background="#212121")
 
-    def clear_form_fields(self, frame):
-        if frame == 'expenses':
+    def clear_form_fields(self, tree: str):
+        if tree == 'expenses':
             self.expenses_name_entry.delete(0, END)
             self.expenses_type_entry.set("Food")
             # self.expenses_curr_ent.set() set it to default
             self.expenses_date_entry.delete(0, END)
             self.expenses_price_entry.delete(0, END)
-        elif frame == 'monthly':
+        elif tree == 'income':
+            self.income_name_entry.delete(0, END)
+            # self.income_curr_ent.set() set it to default
+            self.income_date_entry.delete(0, END)
+            self.income_amount_entry.delete(0, END)
+        elif tree == 'monthly':
             self.sns_monthly_name_ent.delete(0, END)
             self.sns_monthly_date_ent.delete(0, END)
             self.sns_monthly_price_ent.delete(0, END)
-        elif frame == 'yearly':
+        elif tree == 'yearly':
             self.sns_yearly_name_ent.delete(0, END)
             self.sns_yearly_date_ent.delete(0, END)
             self.sns_yearly_price_ent.delete(0, END)
 
-    def delete_record_subs(self, table):
+    def delete_record_subs(self, table: str):
         if table == 'monthly':
             tree = self.tab_view_monthly_tree
             db_table = 'monthly_subs'
@@ -350,17 +430,23 @@ class App(customtkinter.CTk):
             self.db_con.commit()
             tree.delete(record)
 
-    def delete_record_expenses(self):
-        x = self.tab_view_history.selection()
+    def delete_record_histories(self, table: str):
+        if table == 'income':
+            db_table = 'income'
+            history = self.income_history
+        elif table == 'expenses':
+            db_table = 'expenses'
+            history = self.expense_history
+        x = history.selection()
         for record in x:
-            value = self.tab_view_history.item(record)["values"]
+            value = self.expense_history.item(record)["values"]
             price = value[3].split(' ')[0]
-            query = f"DELETE FROM expenses WHERE name='{value[0]}' AND type='{value[1]}' AND date='{value[2]}' AND price='{price}'"
+            query = f"DELETE FROM {db_table} WHERE name='{value[0]}' AND type='{value[1]}' AND date='{value[2]}' AND price='{price}'"
             self.db_con.execute(query)
             self.db_con.commit()
-            self.tab_view_history.delete(record)
+            history.delete(record)
 
-    def validate_inputs(self, table):
+    def validate_inputs(self, table: str):
         if table == 'monthly':
             if float(self.sns_monthly_price_ent.get()):
                 if self.sns_monthly_name_ent.get() and self.sns_monthly_date_ent.get() != "":
@@ -376,11 +462,17 @@ class App(customtkinter.CTk):
         elif table == 'expenses':
             if float(self.expenses_price_entry.get()):
                 if self.expenses_name_entry.get() and self.expenses_date_entry.get() != "":
-                    self.input_record_expenses()
+                    self.input_record_histories("expenses")
             else:
                 self.expenses_save.configure(command=0)
+        elif table == 'income':
+            if float(self.income_amount_entry.get()):
+                if self.income_name_entry.get() and self.income_date_entry.get() != "":
+                    self.input_record_histories("income")
+            else:
+                self.income_save.configure(command=0)
 
-    def curr_type_to_symbol(self, curr_type):
+    def curr_type_to_symbol(self, curr_type: str):
         match curr_type:
             case "Euro [EUR]":
                 return '€'
@@ -391,40 +483,57 @@ class App(customtkinter.CTk):
             case  "Pound [GBP]":
                 return '£'
 
-    def expenses_table(self):
-        res = self.db_cur.execute("SELECT * FROM expenses")
+    def history_tables(self, table: str):
+        if table == 'income':
+            db_table = 'income'
+            history = self.income_history
+        elif table == 'expenses':
+            db_table = 'expenses'
+            history = self.expense_history
+        res = self.db_cur.execute(f"SELECT * FROM {db_table}")
         datas = res.fetchall()
         for record in datas:
             symbol = self.curr_type_to_symbol(record[5])
             price = f"{record[4]} {symbol}"
             if record[0] % 2 == 0:
-                self.tab_view_history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="light")
+                history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="light")
             else:
-                self.tab_view_history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="dark")
-        self.tab_view_history.tag_configure("light", background="#1f6aa5")
-        self.tab_view_history.tag_configure("dark", background="#212121")
+                history.insert(parent='', index='end', values=(record[1], record[2], record[3], price), tags="dark")
+        history.tag_configure("light", background="#1f6aa5")
+        history.tag_configure("dark", background="#212121")
 
-    def refresh_expenses_table(self):
-        res = self.db_cur.execute("SELECT id, name, type, date, price, curr_type FROM expenses ORDER BY id DESC LIMIT 1")
+    def refresh_history_tables(self, table: str):
+        if table == 'income':
+            db_table = 'income'
+            history = self.income_history
+        elif table == 'expenses':
+            db_table = 'expenses'
+            history = self.expense_history
+        res = self.db_cur.execute(f"SELECT id, name, type, date, price, curr_type FROM {db_table} ORDER BY id DESC LIMIT 1")
         datas = res.fetchone()
         symbol = self.curr_type_to_symbol(datas[5])
         price = f"{datas[4]} {symbol}"
         if datas[0] % 2 == 0:
-            self.tab_view_history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="light")
+            history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="light")
         else:
-            self.tab_view_history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="dark")
-        self.tab_view_history.tag_configure("light", background="#1f6aa5")
-        self.tab_view_history.tag_configure("dark", background="#212121")
+            history.insert(parent='', index='end', values=(datas[1], datas[2], datas[3], price), tags="dark")
+        history.tag_configure("light", background="#1f6aa5")
+        history.tag_configure("dark", background="#212121")
 
-    def input_record_expenses(self):
-        entries = [self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get(), self.expenses_curr_ent.get()]
-        query = f"INSERT INTO expenses (name, type, date, price, curr_type) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}', '{entries[4]}')"
+    def input_record_histories(self, table: str):
+        if table == 'income':
+            db_table = 'income'
+            entries = [self.income_name_entry.get(), self.income_type_entry.get(), self.income_date_entry.get(), self.income_amount_entry.get(), self.income_curr_ent.get()]
+        elif table == 'expenses':
+            db_table = 'expenses'
+            entries = [self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get(), self.expenses_curr_ent.get()]
+        query = f"INSERT INTO {db_table} (name, type, date, price, curr_type) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}', '{entries[4]}')"
         self.db_cur.execute(query)
         self.db_con.commit()
-        self.refresh_expenses_table()
-        self.clear_form_fields('expenses')
+        self.refresh_history_tables(table)
+        self.clear_form_fields(table)
 
-    def input_record(self, table):
+    def input_record(self, table: str):
         if table == 'yearly':
             db_table = 'yearly_subs'
             curr_table = self.tab_view_yearly_tree
@@ -439,7 +548,7 @@ class App(customtkinter.CTk):
         self.refresh_sub_table(curr_table, db_table)
         self.clear_form_fields(table)
 
-    def refresh_sub_table(self, table, db_table):
+    def refresh_sub_table(self, table: ttk.Treeview, db_table: str):
         curr_table: ttk.Treeview = table
         res = self.db_cur.execute(f"SELECT id, name, price, date, curr_type FROM {db_table} ORDER BY id DESC LIMIT 1")
         datas = res.fetchone()
@@ -453,22 +562,26 @@ class App(customtkinter.CTk):
         curr_table.tag_configure("dark", background="#212121")
 
     # Swap Frame functions
-    def expenses_button_event(self):
-        self.select_frame_by_name("Expenses")
+    def frame_button_events(self, frame: str):
+        if frame == 'expenses':
+            self.select_frame_by_name("Expenses")
+        elif frame == 'income':
+            self.select_frame_by_name("Income")
+        elif frame == 'statistics':
+            self.select_frame_by_name("Statistics")
+            self.generate_pie_chart()
+            self.generate_bar_chart()
+        elif frame == 'subscriptions':
+            self.select_frame_by_name("Subscriptions")
 
-    def stats_button_event(self):
-        self.select_frame_by_name("Statistics")
-        self.generate_pie_chart()
-        self.generate_bar_chart()
-
-    def sub_button_event(self):
-        self.select_frame_by_name("Subscriptions")
-
-    def set_current_date(self, frame):
+    def set_current_date(self, frame: str):
         date = dt.datetime.now()
         if frame == 'expenses':
             self.expenses_date_entry.delete(0, 'end')
             self.expenses_date_entry.insert(0, f'{date:%Y %B %d}')
+        elif frame == 'income':
+            self.income_date_entry.delete(0, 'end')
+            self.income_date_entry.insert(0, f'{date:%Y %B %d}')
         elif frame == 'monthly':
             self.sns_monthly_date_ent.delete(0, 'end')
             self.sns_monthly_date_ent.insert(0, f'{date:%Y %B %d}')
@@ -505,5 +618,9 @@ if __name__ == "__main__":
     app = App()
     app.mainloop()
 
+# pyright: reportMatchNotExhaustive=false
+# pyright: reportUnboundVariable=false
+# pyright: reportUnknownVariableType=false
 # pyright: reportUnknownMemberType=false
 # pyright: reportMissingTypeStubs=false
+# pyright: reportUnknownLambdaType=false
