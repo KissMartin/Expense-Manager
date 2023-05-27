@@ -230,32 +230,19 @@ class App(customtkinter.CTk):
         self.select_frame_by_name("Expenses")
 
     def generate_pie_chart(self):
-        res = self.db_cur.execute("SELECT type FROM expenses")
+        res = self.db_cur.execute("SELECT COUNT(type), type FROM expenses GROUP BY type")
         datas = res.fetchall()
-        categories = {
-            "Housing": 0,
-            "Clothing": 0,
-            "Food": 0,
-            "Entertainment": 0,
-            "Transportation": 0,
-            "Other": 0
-        }
         cat_sum = 0
+        self.pie_labels = []
+        self.pie_sizes = []
         for data in datas:
-            categories[data[0]] += 1
-            cat_sum += 1
+            self.pie_labels.append(data[1])
+            self.pie_sizes.append(data[0])
+            cat_sum += data[0]
         self.pie_charts_canvas = customtkinter.CTkCanvas(self.stats_charts.tab("Charts"), width=500, height=150, bg="#212121", highlightbackground='#1a1a1a')
         self.pie_charts_canvas.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.figure = plt.figure(figsize=(5, 4), dpi=100, facecolor="#212121")
         self.pie_chart = self.figure.add_subplot(111)  # type: ignore
-        self.pie_labels = []
-        for key, value in categories.items():
-            if value != 0:
-                self.pie_labels.append(key)
-        self.pie_sizes = []
-        for key, value in categories.items():
-            if value != 0 and key in self.pie_labels:
-                self.pie_sizes.append(value / cat_sum)
         self.explode = []
         for i in range(len(self.pie_sizes)):
             if self.pie_sizes[i] == max(self.pie_sizes):
