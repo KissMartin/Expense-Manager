@@ -1,5 +1,4 @@
 import datetime as dt
-from os import replace
 import sqlite3
 from tkinter import CENTER, END, NO, ttk
 import tkcalendar
@@ -28,6 +27,7 @@ class App(customtkinter.CTk):
 
         self.db_con = sqlite3.connect("database.db")
         self.db_cur = self.db_con.cursor()
+        self.main_currency = self.main_curr_type()
 
         # Main Frame, Sidebar elements
         self.label = customtkinter.CTkLabel(self.nav_frame, text="Expense Operator", fg_color="transparent", font=customtkinter.CTkFont(size=20, weight="bold"), compound="left")
@@ -45,11 +45,14 @@ class App(customtkinter.CTk):
         self.stats_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.stats_frame.grid_columnconfigure(1, weight=1)
 
-        self.stats_numbers = customtkinter.CTkTabview(self.stats_frame, width=1165, height=335)
-        self.stats_numbers.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="nesw")
+        self.stats_liquidity = customtkinter.CTkTabview(self.stats_frame, width=583, height=335)
+        self.stats_liquidity.grid(row=0, column=0, padx=(5, 10), pady=0, sticky="nw")
+        self.stats_numbers = customtkinter.CTkTabview(self.stats_frame, width=583, height=335)
+        self.stats_numbers.grid(row=0, column=0, padx=(10, 5), pady=0, sticky="ne")
         self.stats_charts = customtkinter.CTkTabview(self.stats_frame, width=1165, height=390)
         self.stats_charts.grid(row=1, column=0, padx=(10, 5), pady=0, sticky="nesw")
 
+        self.stats_liquidity.add("Liquidity")
         self.stats_numbers.add("Stats")
         self.stats_charts.add("Charts")
 
@@ -57,6 +60,9 @@ class App(customtkinter.CTk):
         self.currency.grid(row=2, column=0, padx=20, pady=10, sticky="sw")
         self.currency_entry = customtkinter.CTkOptionMenu(self.stats_numbers.tab("Stats"), values=["Euro [EUR]", "Dollar [USD]", "Forint [HUF]", "Pound [GBP]"])
         self.currency_entry.grid(row=2, column=0, padx=(180, 20), pady=10, sticky="sw")
+        self.currency_entry.set(self.main_currency)
+        self.currency_set = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text="Set currency type", command=self.main_curr_refresh)
+        self.currency_set.grid(row=2, column=0, padx=(350, 0), pady=10)
         self.stats_label = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Statistics:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.stats_label.grid(row=0, column=0, padx=20, pady=10, sticky="sw")
         self.stats_from = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
@@ -100,19 +106,6 @@ class App(customtkinter.CTk):
         self.stats_subs_cost.grid(row=6, column=0, padx=20, pady=10, sticky="sw")
         self.stats_subs_cost_label = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), width=150, text="")
         self.stats_subs_cost_label.grid(row=6, column=0, padx=(180, 20), pady=10, sticky="sw")
-
-        self.stats_liquidity_label = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Liquidity:", font=customtkinter.CTkFont(size=18, weight="bold"))
-        self.stats_liquidity_label.grid(row=0, column=0, padx=(600, 20), pady=10, sticky="sw")
-        self.stats_needed_money = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Needed money:", font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.stats_needed_money.grid(row=0, column=0, padx=(720, 20), pady=10, sticky="sw")
-        self.spendable_money = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Spendable money:", font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.spendable_money.grid(row=1, column=0, padx=(720, 20), pady=10, sticky="sw")
-        self.stats_liquidity_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
-        self.stats_liquidity_entry.grid(row=1, column=0, padx=(820, 20), pady=10, sticky="sw")
-        self.stats_needed_money_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
-        self.stats_needed_money_entry.grid(row=0, column=0, padx=(820, 20), pady=10, sticky="sw")
-        self.spendable_money_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
-        self.spendable_money_entry.grid(row=1, column=0, padx=(820, 20), pady=10, sticky="sw")
 
         # Income frame
         self.income_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -364,36 +357,82 @@ class App(customtkinter.CTk):
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
 
-    def stat_income(self, from_date: str, to_date: str):
+    def gui_print(self, table: str):
+        date_from = self.date_button_from.cget("text")
+        date_to = self.date_button_to.cget("text")
+        main_curr = self.curr_type_to_symbol(self.main_curr_type())
+        if table == 'income':
+            self.stat_income(main_curr, date_from, date_to)
+        elif table == 'balance':
+            self.stat_balance(main_curr, date_from, date_to)
+        elif table == 'expenses':
+            self.stat_expenses(main_curr, date_from, date_to)
+        elif table == 'subs':
+            self.stat_subs(main_curr, date_from, date_to)
+        else:
+            self.stat_income(main_curr, date_from, date_to)
+            self.stat_balance(main_curr, date_from, date_to)
+            self.stat_expenses(main_curr, date_from, date_to)
+            self.stat_subs(main_curr, date_from, date_to)
+
+    def currency_format(self, label: customtkinter.CTkLabel, main_curr: str, operator: str, numbers: int):
+        if main_curr in ('Ft', '€'):
+            label.configure(text=f"{operator}{abs(numbers):,} {main_curr}".replace(',', ' '))
+        else:
+            label.configure(text=f"{operator}{main_curr} {abs(numbers):,}".replace(',', ' '))
+
+    def main_curr_type(self):
+        res = self.db_cur.execute("SELECT curr_type FROM currencies WHERE main_curr=1")
+        main = res.fetchone()[0]
+        return main
+
+    def main_curr_refresh(self):
+        self.db_cur.execute("UPDATE currencies SET main_curr=0")
+        self.db_cur.execute(f"UPDATE currencies SET main_curr=1 WHERE curr_type='{self.currency_entry.get()}'")
+        self.db_con.commit()
+        self.gui_print('all')
+
+    def stat_income(self, main_curr: str, from_date: str, to_date: str):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM income WHERE date BETWEEN date('{from_date}') AND date('{to_date}')")
         income = res.fetchone()[0]
         if income is None:
             income = 'N/A'
-        self.stats_income_label.configure(text=f"{income:,}".replace(',', ' '))
+        label = self.stats_income_label
+        operator = ''
+        self.currency_format(label, main_curr, operator, income)
         return income
 
-    def stat_expenses(self, from_date: str, to_date: str):
+    def stat_expenses(self, main_curr: str, from_date: str, to_date: str):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{from_date}') AND date('{to_date}') AND frequency='One time'")
         expenses = res.fetchone()[0]
         if expenses is None:
             expenses = 'N/A'
-        self.stats_expenses_label.configure(text=f"-{expenses:,}".replace(',', ' '))
+        label = self.stats_expenses_label
+        operator = '-'
+        self.currency_format(label, main_curr, operator, expenses)
         return expenses
 
-    def stat_subs(self, from_date: str, to_date: str):
+    def stat_subs(self, main_curr: str, from_date: str, to_date: str):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{from_date}') AND date('{to_date}') AND frequency='Monthly' OR frequency='Yearly'")
         subs = res.fetchone()[0]
         if subs is None:
             subs = 'N/A'
-        self.stats_subs_cost_label.configure(text=f"-{subs:,}".replace(',', ' '))
+        label = self.stats_subs_cost_label
+        operator = '-'
+        self.currency_format(label, main_curr, operator, subs)
         return subs
 
-    def stat_balance(self, from_date: str, to_date: str):
-        income = self.stat_income(from_date, to_date)
-        expenses = self.stat_expenses(from_date, to_date)
-        subs = self.stat_subs(from_date, to_date)
+    def stat_balance(self, main_curr: str, from_date: str, to_date: str):
+        income = self.stat_income(main_curr, from_date, to_date)
+        expenses = self.stat_expenses(main_curr, from_date, to_date)
+        subs = self.stat_subs(main_curr, from_date, to_date)
         balance = income - expenses - subs
-        self.stats_curr_balance_label.configure(text=f"{balance:,}".replace(',', ' '))
+        label = self.stats_curr_balance_label
+        if balance < 0:
+            operator = '-'
+        else:
+            operator = ''
+        self.currency_format(label, main_curr, operator, balance)
 
     def date_select(self, frame: str, which_date: str):
         if frame == "stats":
@@ -529,12 +568,12 @@ class App(customtkinter.CTk):
     def clear_form_fields(self, tree: str):
         if tree == 'expenses':
             self.expenses_name_entry.delete(0, END)
-            # self.expenses_curr_ent.set() set it to default
+            self.expenses_curr_ent.set(self.main_currency)
             self.expenses_date_entry.delete(0, END)
             self.expenses_price_entry.delete(0, END)
         elif tree == 'income':
             self.income_name_entry.delete(0, END)
-            # self.income_curr_ent.set() set it to default
+            self.income_curr_ent.set(self.main_currency)
             self.income_date_entry.delete(0, END)
             self.income_amount_ent.delete(0, END)
         elif tree == 'monthly':
@@ -701,11 +740,14 @@ class App(customtkinter.CTk):
         elif frame == 'income':
             self.select_frame_by_name("Income")
         elif frame == 'statistics':
+            main_curr = self.curr_type_to_symbol(self.main_currency)
+            date_from = self.date_button_from.cget("text")
+            date_to = self.date_button_to.cget("text")
             self.select_frame_by_name("Statistics")
-            self.stat_income(self.date_button_from.cget("text"), self.date_button_to.cget("text"))
-            self.stat_expenses(self.date_button_from.cget("text"), self.date_button_to.cget("text"))
-            self.stat_subs(self.date_button_from.cget("text"), self.date_button_to.cget("text"))
-            self.stat_balance(self.date_button_from.cget("text"), self.date_button_to.cget("text"))
+            self.stat_income(main_curr, date_from, date_to)
+            self.stat_expenses(main_curr, date_from, date_to)
+            self.stat_subs(main_curr, date_from, date_to)
+            self.stat_balance(main_curr, date_from, date_to)
             self.gen_expense_chart()
             self.gen_income_chart()
         elif frame == 'subscriptions':
