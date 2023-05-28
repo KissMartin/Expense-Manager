@@ -65,8 +65,8 @@ class App(customtkinter.CTk):
         self.currency_set.grid(row=2, column=0, padx=(350, 0), pady=10)
         self.stats_label = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Statistics:", font=customtkinter.CTkFont(size=18, weight="bold"))
         self.stats_label.grid(row=0, column=0, padx=20, pady=10, sticky="sw")
-        self.stats_from = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.stats_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
+        self.stats_date_from = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.stats_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
         self.date_button_from = customtkinter.CTkButton(
             self.stats_numbers.tab("Stats"),
             text='----/--/--',
@@ -81,11 +81,11 @@ class App(customtkinter.CTk):
             border_width=2)
         self.date_button_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
         # self.date_button_from.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
-        self.stats_to = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.stats_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
-        self.date_button_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='----/--/--', command=lambda: self.date_select("stats", "to"), fg_color="#343638",
-                                                      border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
-        self.date_button_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
+        self.stats_date_to = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.stats_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
+        self.stats_date_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='----/--/--', command=lambda: self.date_select("stats", "to"), fg_color="#343638",
+                                                     border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
+        self.stats_date_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
         # self.date_button_to.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
         self.toplevel_window = None
 
@@ -120,7 +120,7 @@ class App(customtkinter.CTk):
         self.tab_income_hist = customtkinter.CTkTabview(self.income_frame, width=710, height=780)
         self.tab_income_hist.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
         self.income_history = ttk.Treeview(self.income_frame)
-        self.income_history.grid(row=0, column=1, padx=30, pady=(50, 10), sticky="nesw")
+        self.income_history.grid(row=0, column=1, padx=30, pady=(100, 10), sticky="nesw")
 
         self.tab_new_income.add("New Income")
         self.tab_income_hist.add("Income History")
@@ -140,6 +140,25 @@ class App(customtkinter.CTk):
         self.income_history.heading("frequency", text="Frequency", anchor=CENTER)
 
         self.history_tables('income')
+
+        self.income_date_from = customtkinter.CTkLabel(self.tab_income_hist.tab("Income History"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.income_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
+        self.income_date_from = customtkinter.CTkButton(
+            self.tab_income_hist.tab("Income History"),
+            text='----/--/--',
+            command=None,
+            fg_color="#343638",
+            border_color="#565b5e",
+            hover_color="#565b5e",
+            font=customtkinter.CTkFont(
+                size=14),
+            border_width=2)
+        self.income_date_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
+        self.income_date_to = customtkinter.CTkButton(self.tab_income_hist.tab("Income History"), text='----/--/--', command=None, fg_color="#343638",
+                                                      border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
+        self.income_date_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
+        self.income_date_to = customtkinter.CTkLabel(self.tab_income_hist.tab("Income History"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.income_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
 
         self.income_main_title = customtkinter.CTkLabel(master=self.tab_new_income.tab("New Income"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.income_main_title.grid(row=0, column=0, padx=110, pady=50, sticky="w")
@@ -196,7 +215,7 @@ class App(customtkinter.CTk):
         self.tab_expense_hist = customtkinter.CTkTabview(self.expenses_frame, width=710, height=780)
         self.tab_expense_hist.grid(row=0, column=1, padx=(10, 5), pady=0, sticky="nesw")
         self.expense_history = ttk.Treeview(self.expenses_frame)
-        self.expense_history.grid(row=0, column=1, padx=30, pady=(50, 10), sticky="nesw")
+        self.expense_history.grid(row=0, column=1, padx=30, pady=(100, 10), sticky="nesw")
 
         self.tab_new_expense.add("New Expense")
         self.tab_expense_hist.add("Expense History")
@@ -216,6 +235,25 @@ class App(customtkinter.CTk):
         self.expense_history.heading("frequency", text="Frequency", anchor=CENTER)
 
         self.history_tables("expenses")
+
+        self.expenses_date_from = customtkinter.CTkLabel(self.tab_expense_hist.tab("Expense History"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.expenses_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
+        self.expenses_date_from = customtkinter.CTkButton(
+            self.tab_expense_hist.tab("Expense History"),
+            text='----/--/--',
+            command=None,
+            fg_color="#343638",
+            border_color="#565b5e",
+            hover_color="#565b5e",
+            font=customtkinter.CTkFont(
+                size=14),
+            border_width=2)
+        self.expenses_date_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
+        self.expenses_date_to = customtkinter.CTkButton(self.tab_expense_hist.tab("Expense History"), text='----/--/--', command=None, fg_color="#343638",
+                                                        border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
+        self.expenses_date_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
+        self.expenses_date_to = customtkinter.CTkLabel(self.tab_expense_hist.tab("Expense History"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.expenses_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
 
         self.expenses_main_title = customtkinter.CTkLabel(master=self.tab_new_expense.tab("New Expense"), text="New expense:", font=customtkinter.CTkFont(size=30, weight="bold"))
         self.expenses_main_title.grid(row=0, column=0, padx=110, pady=50, sticky="w")
@@ -359,7 +397,7 @@ class App(customtkinter.CTk):
 
     def gui_print(self, table: str):
         date_from = self.date_button_from.cget("text")
-        date_to = self.date_button_to.cget("text")
+        date_to = self.stats_date_to.cget("text")
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         if table == 'income':
             self.stat_income(main_curr, date_from, date_to)
@@ -439,7 +477,7 @@ class App(customtkinter.CTk):
             if which_date == "from":
                 date = self.date_button_from
             elif which_date == "to":
-                date = self.date_button_to
+                date = self.stats_date_to
         curr_year = dt.datetime.now().year
         curr_month = dt.datetime.now().month
         curr_day = dt.datetime.now().day
@@ -465,7 +503,7 @@ class App(customtkinter.CTk):
     def refresh_range(self):
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         date_from = self.date_button_from.cget("text")
-        date_to = self.date_button_to.cget("text")
+        date_to = self.stats_date_to.cget("text")
         if date_from == "----/--/--":
             res = self.db_cur.execute("SELECT date FROM expenses WHERE date=(SELECT MIN(date) FROM expenses)")
             date_from = res.fetchone()[0]
