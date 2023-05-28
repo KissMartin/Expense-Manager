@@ -84,24 +84,40 @@ class App(customtkinter.CTk):
 
         self.stats_curr_balance = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Current Balance:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_curr_balance.grid(row=3, column=0, padx=20, pady=10, sticky="sw")
-        self.stats_curr_balance_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_curr_balance_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=150, placeholder_text='')
         self.stats_curr_balance_entry.grid(row=3, column=0, padx=(180, 20), pady=10, sticky="sw")
+
+        self.curr_balance(self.date_button_from.cget("text"), self.date_button_to.cget("text"))
+
         self.stats_income = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Income:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_income.grid(row=4, column=0, padx=20, pady=10, sticky="sw")
-        self.stats_income_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_income_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=150)
         self.stats_income_entry.grid(row=4, column=0, padx=(180, 20), pady=10, sticky="sw")
         self.stats_expenses = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Expenses:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_expenses.grid(row=5, column=0, padx=20, pady=10, sticky="sw")
-        self.stats_expenses_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_expenses_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=150)
         self.stats_expenses_entry.grid(row=5, column=0, padx=(180, 20), pady=10, sticky="sw")
         self.stats_subs_cost = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Subscriptions cost:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_subs_cost.grid(row=6, column=0, padx=20, pady=10, sticky="sw")
-        self.stats_subs_cost_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_subs_cost_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=150)
         self.stats_subs_cost_entry.grid(row=6, column=0, padx=(180, 20), pady=10, sticky="sw")
         self.stats_curr_balance_entry.configure(state="readonly")
         self.stats_income_entry.configure(state="readonly")
         self.stats_expenses_entry.configure(state="readonly")
         self.stats_subs_cost_entry.configure(state="readonly")
+
+        self.stats_liquidity_label = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Liquidity:", font=customtkinter.CTkFont(size=18, weight="bold"))
+        self.stats_liquidity_label.grid(row=0, column=0, padx=(600, 20), pady=10, sticky="sw")
+        self.stats_needed_money = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Needed money:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.stats_needed_money.grid(row=0, column=0, padx=(720, 20), pady=10, sticky="sw")
+        self.spendable_money = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Spendable money:", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.spendable_money.grid(row=1, column=0, padx=(720, 20), pady=10, sticky="sw")
+        self.stats_liquidity_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_liquidity_entry.grid(row=1, column=0, padx=(820, 20), pady=10, sticky="sw")
+        self.stats_needed_money_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.stats_needed_money_entry.grid(row=0, column=0, padx=(820, 20), pady=10, sticky="sw")
+        self.spendable_money_entry = customtkinter.CTkEntry(self.stats_numbers.tab("Stats"), width=200)
+        self.spendable_money_entry.grid(row=1, column=0, padx=(820, 20), pady=10, sticky="sw")
 
         # Income frame
         self.income_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -352,6 +368,18 @@ class App(customtkinter.CTk):
 
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
+
+    def curr_balance(self, from_date: str, to_date: str):
+        res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{from_date}') AND date('{to_date}')")
+        expenses = res.fetchone()[0]
+        res = self.db_cur.execute(f"SELECT SUM(price) FROM income WHERE date BETWEEN date('{from_date}') AND date('{to_date}')")
+        income = res.fetchone()[0]
+        if income is None:
+            income = 'N/A'
+        if expenses is None:
+            expenses = 'N/A'
+        balance = income - expenses
+        self.stats_curr_balance_entry.configure(placeholder_text=f"{balance}")
 
     def date_select(self, frame: str, which_date: str):
         if frame == "stats":
@@ -669,16 +697,16 @@ class App(customtkinter.CTk):
         date = dt.datetime.now()
         if frame == 'expenses':
             self.expenses_date_entry.delete(0, 'end')
-            self.expenses_date_entry.insert(0, f'{date:%Y %B %d}')
+            self.expenses_date_entry.insert(0, f'{date:%Y-%m-%d}')
         elif frame == 'income':
             self.income_date_entry.delete(0, 'end')
-            self.income_date_entry.insert(0, f'{date:%Y %B %d}')
+            self.income_date_entry.insert(0, f'{date:%Y-%m-%d}')
         elif frame == 'monthly':
             self.sns_monthly_date_ent.delete(0, 'end')
-            self.sns_monthly_date_ent.insert(0, f'{date:%Y %B %d}')
+            self.sns_monthly_date_ent.insert(0, f'{date:%Y %m %d}')
         elif frame == 'yearly':
             self.sns_yearly_date_ent.delete(0, 'end')
-            self.sns_yearly_date_ent.insert(0, f'{date:%Y %B %d}')
+            self.sns_yearly_date_ent.insert(0, f'{date:%Y-%m-%d}')
 
     # Validate fucntion for Subs & Sum menu
     # def validate(self):
