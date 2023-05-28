@@ -602,25 +602,6 @@ class App(customtkinter.CTk):
         else:
             self.stats_frame.grid_forget()
 
-    def subs_table(self, table: str):
-        if table == 'monthly':
-            table_name = 'monthly_subs'
-            tree = self.tab_view_monthly_tree
-        elif table == 'yearly':
-            table_name = 'yearly_subs'
-            tree = self.tab_view_yearly_tree
-        res = self.db_cur.execute(f"SELECT * FROM {table_name}")
-        datas = res.fetchall()
-        for record in datas:
-            symbol = self.curr_type_to_symbol(record[4])
-            price = f"{record[2]} {symbol}"
-            if record[0] % 2 == 0:
-                tree.insert(parent='', index='end', values=(record[1], record[2], price), tags="light")
-            else:
-                tree.insert(parent='', index='end', values=(record[1], record[2], price), tags="dark")
-        tree.tag_configure("light", background="#1f6aa5")
-        tree.tag_configure("dark", background="#212121")
-
     def clear_form_fields(self, tree: str):
         if tree == 'expenses':
             self.expenses_name_entry.delete(0, END)
@@ -632,30 +613,6 @@ class App(customtkinter.CTk):
             self.income_curr_ent.set(self.main_currency)
             self.income_date_entry.delete(0, END)
             self.income_amount_ent.delete(0, END)
-        elif tree == 'monthly':
-            self.sns_monthly_name_ent.delete(0, END)
-            self.sns_monthly_date_ent.delete(0, END)
-            self.sns_monthly_price_ent.delete(0, END)
-        elif tree == 'yearly':
-            self.sns_yearly_name_ent.delete(0, END)
-            self.sns_yearly_date_ent.delete(0, END)
-            self.sns_yearly_price_ent.delete(0, END)
-
-    # def delete_record_subs(self, table: str):
-    #     if table == 'monthly':
-    #         tree = self.tab_view_monthly_tree
-    #         db_table = 'monthly_subs'
-    #     elif table == 'yearly':
-    #         tree = self.tab_view_yearly_tree
-    #         db_table = 'yearly_subs'
-    #     x = tree.selection()
-    #     for record in x:
-    #         value = tree.item(record)["values"]
-    #         price = value[3].split(' ')[0]
-    #         query = f"DELETE FROM {db_table} WHERE name='{value[0]}' AND date='{value[2]}' AND price='{price}'"
-    #         self.db_con.execute(query)
-    #         self.db_con.commit()
-    #         tree.delete(record)
 
     def delete_record_histories(self, table: str):
         if table == 'income':
@@ -675,19 +632,7 @@ class App(customtkinter.CTk):
             history.delete(record)
 
     def validate_inputs(self, table: str):
-        if table == 'monthly':
-            if float(self.sns_monthly_price_ent.get()):
-                if self.sns_monthly_name_ent.get() and self.sns_monthly_date_ent.get() != "":
-                    self.input_record('monthly')
-            else:
-                self.sns_monthly_add.configure(command=0)
-        elif table == 'yearly':
-            if float(self.sns_yearly_price_ent.get()):
-                if self.sns_yearly_name_ent.get() and self.sns_yearly_date_ent.get() != "":
-                    self.input_record('yearly')
-            else:
-                self.sns_yearly_add.configure(command=0)
-        elif table == 'expenses':
+        if table == 'expenses':
             if float(self.expenses_price_entry.get()):
                 if self.expenses_name_entry.get() and self.expenses_date_entry.get() != "":
                     self.input_record_histories("expenses")
@@ -761,21 +706,6 @@ class App(customtkinter.CTk):
         self.refresh_history_tables(table)
         self.clear_form_fields(table)
 
-    def input_record(self, table: str):
-        if table == 'yearly':
-            db_table = 'yearly_subs'
-            curr_table = self.tab_view_yearly_tree
-            entries = [self.sns_yearly_name_ent.get(), self.sns_yearly_date_ent.get(), self.sns_yearly_price_ent.get(), self.sns_yearly_curr_ent.get()]
-        elif table == 'monthly':
-            db_table = 'monthly_subs'
-            curr_table = self.tab_view_monthly_tree
-            entries = [self.sns_monthly_name_ent.get(), self.sns_monthly_date_ent.get(), self.sns_monthly_price_ent.get(), self.sns_monthy_curr_ent.get()]
-        query = f"INSERT INTO {db_table} (name, date, price, curr_type) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}')"
-        self.db_cur.execute(query)
-        self.db_con.commit()
-        self.refresh_sub_table(curr_table, db_table)
-        self.clear_form_fields(table)
-
     def refresh_sub_table(self, table: ttk.Treeview, db_table: str):
         curr_table: ttk.Treeview = table
         res = self.db_cur.execute(f"SELECT id, name, price, date, curr_type FROM {db_table} ORDER BY id DESC LIMIT 1")
@@ -808,12 +738,6 @@ class App(customtkinter.CTk):
         elif frame == 'income':
             self.income_date_entry.delete(0, 'end')
             self.income_date_entry.insert(0, f'{date:%Y-%m-%d}')
-        elif frame == 'monthly':
-            self.sns_monthly_date_ent.delete(0, 'end')
-            self.sns_monthly_date_ent.insert(0, f'{date:%Y %m %d}')
-        elif frame == 'yearly':
-            self.sns_yearly_date_ent.delete(0, 'end')
-            self.sns_yearly_date_ent.insert(0, f'{date:%Y-%m-%d}')
 
     # Validate fucntion for Subs & Sum menu
     # def validate(self):
