@@ -69,7 +69,7 @@ class App(customtkinter.CTk):
         self.stats_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
         self.date_button_from = customtkinter.CTkButton(
             self.stats_numbers.tab("Stats"),
-            text='',
+            text='----/--/--',
             command=lambda: self.date_select(
                 "stats",
                 "from"),
@@ -80,13 +80,13 @@ class App(customtkinter.CTk):
                 size=14),
             border_width=2)
         self.date_button_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
-        self.date_button_from.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
+        # self.date_button_from.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
         self.stats_to = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
-        self.date_button_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='', command=lambda: self.date_select("stats", "to"), fg_color="#343638",
+        self.date_button_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='----/--/--', command=lambda: self.date_select("stats", "to"), fg_color="#343638",
                                                       border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
         self.date_button_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
-        self.date_button_to.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
+        # self.date_button_to.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
         self.toplevel_window = None
 
         self.stats_curr_balance = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="Current Balance:", font=customtkinter.CTkFont(size=15, weight="bold"))
@@ -375,11 +375,11 @@ class App(customtkinter.CTk):
             self.stat_expenses(main_curr, date_from, date_to)
             self.stat_subs(main_curr, date_from, date_to)
 
-    def currency_format(self, label: customtkinter.CTkLabel, main_curr: str, operator: str, numbers: int):
+    def currency_format(self, label: customtkinter.CTkLabel, main_curr: float, operator: str, numbers: int):
         if main_curr in ('Ft', '€'):
-            label.configure(text=f"{operator}{abs(numbers):,} {main_curr}".replace(',', ' '))
+            label.configure(text=f"{operator}{abs(float(numbers)):,} {main_curr}".replace(',', ' '))
         else:
-            label.configure(text=f"{operator}{main_curr} {abs(numbers):,}".replace(',', ' '))
+            label.configure(text=f"{operator}{main_curr} {abs(float(numbers)):,}".replace(',', ' '))
 
     def main_curr_type(self):
         res = self.db_cur.execute("SELECT curr_type FROM currencies WHERE main_curr=1")
@@ -460,6 +460,24 @@ class App(customtkinter.CTk):
         which_date.configure(text=f"{date}")
         self.toplevel_window.withdraw()
         self.toplevel_window = None
+        self.refresh_range()
+
+    def refresh_range(self):
+        main_curr = self.curr_type_to_symbol(self.main_curr_type())
+        date_from = self.date_button_from.cget("text")
+        date_to = self.date_button_to.cget("text")
+        if date_from == "----/--/--":
+            res = self.db_cur.execute("SELECT date FROM expenses WHERE date=(SELECT MIN(date) FROM expenses)")
+            date_from = res.fetchone()[0]
+        if date_to == "----/--/--":
+            date_to = dt.datetime.now().strftime("%Y-%m-%d")
+        self.select_frame_by_name("Statistics")
+        self.stat_income(main_curr, date_from, date_to)
+        self.stat_expenses(main_curr, date_from, date_to)
+        self.stat_subs(main_curr, date_from, date_to)
+        self.stat_balance(main_curr, date_from, date_to)
+        self.gen_expense_chart()
+        self.gen_income_chart()
 
     def gen_expense_chart(self):
         res = self.db_cur.execute("SELECT COUNT(type), type FROM expenses GROUP BY type")
@@ -740,16 +758,7 @@ class App(customtkinter.CTk):
         elif frame == 'income':
             self.select_frame_by_name("Income")
         elif frame == 'statistics':
-            main_curr = self.curr_type_to_symbol(self.main_currency)
-            date_from = self.date_button_from.cget("text")
-            date_to = self.date_button_to.cget("text")
-            self.select_frame_by_name("Statistics")
-            self.stat_income(main_curr, date_from, date_to)
-            self.stat_expenses(main_curr, date_from, date_to)
-            self.stat_subs(main_curr, date_from, date_to)
-            self.stat_balance(main_curr, date_from, date_to)
-            self.gen_expense_chart()
-            self.gen_income_chart()
+            self.refresh_range()
         elif frame == 'subscriptions':
             self.select_frame_by_name("Subscriptions")
 
