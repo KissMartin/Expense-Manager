@@ -1,4 +1,5 @@
 import datetime as dt
+from os import replace
 import sqlite3
 from tkinter import CENTER, END, NO, ttk
 import tkcalendar
@@ -368,7 +369,7 @@ class App(customtkinter.CTk):
         income = res.fetchone()[0]
         if income is None:
             income = 'N/A'
-        self.stats_income_label.configure(text=f"{income}")
+        self.stats_income_label.configure(text=f"{income:,}".replace(',', ' '))
         return income
 
     def stat_expenses(self, from_date: str, to_date: str):
@@ -376,7 +377,7 @@ class App(customtkinter.CTk):
         expenses = res.fetchone()[0]
         if expenses is None:
             expenses = 'N/A'
-        self.stats_expenses_label.configure(text=f"{expenses}")
+        self.stats_expenses_label.configure(text=f"-{expenses:,}".replace(',', ' '))
         return expenses
 
     def stat_subs(self, from_date: str, to_date: str):
@@ -384,7 +385,7 @@ class App(customtkinter.CTk):
         subs = res.fetchone()[0]
         if subs is None:
             subs = 'N/A'
-        self.stats_subs_cost_label.configure(text=f"{subs}")
+        self.stats_subs_cost_label.configure(text=f"-{subs:,}".replace(',', ' '))
         return subs
 
     def stat_balance(self, from_date: str, to_date: str):
@@ -392,7 +393,7 @@ class App(customtkinter.CTk):
         expenses = self.stat_expenses(from_date, to_date)
         subs = self.stat_subs(from_date, to_date)
         balance = income - expenses - subs
-        self.stats_curr_balance_label.configure(text=f"{balance}")
+        self.stats_curr_balance_label.configure(text=f"{balance:,}".replace(',', ' '))
 
     def date_select(self, frame: str, which_date: str):
         if frame == "stats":
