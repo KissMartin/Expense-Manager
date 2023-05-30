@@ -66,7 +66,7 @@ class App(customtkinter.CTk):
         self.stats_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
         self.date_button_from = customtkinter.CTkButton(
             self.stats_numbers.tab("Stats"),
-            text='----/--/--',
+            text=self.set_start_date('expenses'),
             command=lambda: self.date_select(
                 "stats",
                 "from"),
@@ -80,7 +80,7 @@ class App(customtkinter.CTk):
         # self.date_button_from.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
         self.stats_date_to = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
-        self.stats_date_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text='----/--/--', command=lambda: self.date_select("stats", "to"), fg_color="#343638",
+        self.stats_date_to = customtkinter.CTkButton(self.stats_numbers.tab("Stats"), text=dt.datetime.now().strftime("%Y-%m-%d"), command=lambda: self.date_select("stats", "to"), fg_color="#343638",
                                                      border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
         self.stats_date_to.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
         # self.date_button_to.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
@@ -140,7 +140,7 @@ class App(customtkinter.CTk):
         self.income_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
         self.income_date_from_btn = customtkinter.CTkButton(
             self.tab_income_hist.tab("Income History"),
-            text='----/--/--',
+            text=self.set_start_date("income"),
             command=lambda: self.date_select(
                 "income",
                 "from"),
@@ -151,7 +151,7 @@ class App(customtkinter.CTk):
                 size=14),
             border_width=2)
         self.income_date_from_btn.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
-        self.income_date_to_btn = customtkinter.CTkButton(self.tab_income_hist.tab("Income History"), text='----/--/--', command=lambda: self.date_select('income', 'to'), fg_color="#343638",
+        self.income_date_to_btn = customtkinter.CTkButton(self.tab_income_hist.tab("Income History"), text=dt.datetime.now().strftime("%Y-%m-%d"), command=lambda: self.date_select('income', 'to'), fg_color="#343638",
                                                           border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
         self.income_date_to_btn.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
         self.income_date_to = customtkinter.CTkLabel(self.tab_income_hist.tab("Income History"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
@@ -237,7 +237,7 @@ class App(customtkinter.CTk):
         self.expenses_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
         self.expenses_date_from_btn = customtkinter.CTkButton(
             self.tab_expense_hist.tab("Expense History"),
-            text='----/--/--',
+            text=self.set_start_date("expenses"),
             command=lambda: self.date_select(
                 "expenses",
                 "from"),
@@ -248,9 +248,10 @@ class App(customtkinter.CTk):
                 size=14),
             border_width=2)
         self.expenses_date_from_btn.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
-        self.expenses_date_to_btn = customtkinter.CTkButton(self.tab_expense_hist.tab("Expense History"), text='----/--/--', command=lambda: self.date_select("expenses", "to"), fg_color="#343638",
+        self.expenses_date_to_btn = customtkinter.CTkButton(self.tab_expense_hist.tab("Expense History"), text=dt.datetime.now().strftime("%Y-%m-%d"), command=lambda: self.date_select("expenses", "to"), fg_color="#343638",
                                                             border_color="#565b5e", hover_color="#565b5e", font=customtkinter.CTkFont(size=14), border_width=2)
         self.expenses_date_to_btn.grid(row=0, column=0, padx=(370, 20), pady=10, sticky="sw")
+
         self.expenses_date_to = customtkinter.CTkLabel(self.tab_expense_hist.tab("Expense History"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.expenses_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
 
@@ -396,6 +397,26 @@ class App(customtkinter.CTk):
         # Default Frame (Loading Frame)
         self.select_frame_by_name("Expenses")
 
+    def set_start_date(self, table: str) -> str:
+        # if table == "stats":
+        #     res_exp = self.db_cur.execute("SELECT MIN(date) FROM expenses")
+        #     res_inc = self.db_cur.execute("SELECT MIN(date) FROM income")
+        #     date_exp = res_exp.fetchone()[0]
+        #     date_inc = res_inc.fetchone()[0]
+        #     if date_exp is None or date_exp is None:
+        #         date = dt.datetime.now().strftime("%Y-%m-%d")
+        #     elif date_exp is None and date_inc is not None:
+        #         date = date_inc
+        #     elif date_exp is not None and date_inc is None:
+        #         date = date_exp
+        #     else:
+        #         date = min(date_exp, date_inc)
+        res = self.db_cur.execute(f"SELECT MIN(date) FROM {table}")
+        date = res.fetchone()[0]
+        if date is None:
+            date = dt.datetime.now().strftime("%Y-%m-%d")
+        return str(date)
+
     def sort_treeview(self, sort_by: str, table: str, sort_category: customtkinter.CTkOptionMenu):
         sort_w = sort_category.get()
         if table == 'expenses':
@@ -436,11 +457,6 @@ class App(customtkinter.CTk):
     def gui_print(self, table: str):
         date_from = self.date_button_from.cget("text")
         date_to = self.stats_date_to.cget("text")
-        if date_from == "----/--/--":
-            res = self.db_cur.execute("SELECT date FROM expenses WHERE date=(SELECT MIN(date) FROM expenses)")
-            date_from = res.fetchone()[0]
-        if date_to == "----/--/--":
-            date_to = dt.datetime.now().strftime("%Y-%m-%d")
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         if table == 'income':
             self.stat_income(main_curr, date_from, date_to)
@@ -562,11 +578,6 @@ class App(customtkinter.CTk):
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         date_from = self.date_button_from.cget("text")
         date_to = self.stats_date_to.cget("text")
-        if date_from == "----/--/--":
-            res = self.db_cur.execute("SELECT date FROM expenses WHERE date=(SELECT MIN(date) FROM expenses)")
-            date_from = res.fetchone()[0]
-        if date_to == "----/--/--":
-            date_to = dt.datetime.now().strftime("%Y-%m-%d")
         self.stat_income(main_curr, date_from, date_to)
         self.stat_expenses(main_curr, date_from, date_to)
         self.stat_subs(main_curr, date_from, date_to)
@@ -579,17 +590,10 @@ class App(customtkinter.CTk):
             date_from = self.expenses_date_from_btn.cget("text")
             date_to = self.expenses_date_to_btn.cget("text")
             history = self.expenses_history
-            db_table = 'expenses'
         elif table == 'income':
             date_from = self.income_date_from_btn.cget("text")
             date_to = self.income_date_to_btn.cget("text")
             history = self.income_history
-            db_table = 'income'
-        if date_from == "----/--/--":
-            res = self.db_cur.execute(f"SELECT date FROM {db_table} WHERE date=(SELECT MIN(date) FROM {db_table})")
-            date_from = res.fetchone()[0]
-        if date_to == "----/--/--":
-            date_to = dt.datetime.now().strftime("%Y-%m-%d")
         for i in history.get_children():
             history.delete(i)
         self.history_tables(table, date_from, date_to)
@@ -757,25 +761,23 @@ class App(customtkinter.CTk):
 
     def refresh_history_tables(self, table: str, date_from: str, date_to: str):
         if table == 'income':
-            db_table = 'income'
             history = self.income_history
         elif table == 'expenses':
-            db_table = 'expenses'
             history = self.expenses_history
-        res = self.db_cur.execute(f"SELECT id, name, type, date, price, curr_type, frequency FROM {db_table} ORDER BY id DESC LIMIT 1 IF date BETWEEN date('{date_from}') AND date('{date_to}')")
-        datas = res.fetchone()
+        res = self.db_cur.execute(f"SELECT * FROM {table} WHERE date BETWEEN date('{date_from}') AND date('{date_to}') ORDER BY id DESC LIMIT 1")
+        datas = res.fetchall()
         self.history_table_format(datas, history)
 
     def input_record_histories(self, table: str):
-        date_to = dt.datetime.now().strftime("%Y-%m-%d")
-        date_from = self.date_button_from.cget("text")
         if table == 'income':
-            db_table = 'income'
+            date_from = self.expenses_date_from_btn.cget("text")
+            date_to = self.expenses_date_to_btn.cget("text")
             entries = [self.income_name_entry.get(), self.income_type_entry.get(), self.income_date_entry.get(), self.income_amount_ent.get(), self.income_curr_ent.get(), self.income_frequency_ent.get()]
         elif table == 'expenses':
-            db_table = 'expenses'
+            date_from = self.income_date_from_btn.cget("text")
+            date_to = self.income_date_to_btn.cget("text")
             entries = [self.expenses_name_entry.get(), self.expenses_type_entry.get(), self.expenses_date_entry.get(), self.expenses_price_entry.get(), self.expenses_curr_ent.get(), self.expenses_frequency_ent.get()]
-        query = f"INSERT INTO {db_table} (name, type, date, price, curr_type, frequency) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}', '{entries[4]}', '{entries[5]}')"
+        query = f"INSERT INTO {table} (name, type, date, price, curr_type, frequency) VALUES ('{entries[0]}', '{entries[1]}', '{entries[2]}', '{entries[3]}', '{entries[4]}', '{entries[5]}')"
         self.db_cur.execute(query)
         self.db_con.commit()
         self.refresh_history_tables(table, date_from, date_to)
