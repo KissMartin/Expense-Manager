@@ -64,7 +64,7 @@ class App(customtkinter.CTk):
         self.stats_label.grid(row=0, column=0, padx=20, pady=10, sticky="sw")
         self.stats_date_from = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="From:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_date_from.grid(row=0, column=0, padx=(120, 20), pady=10, sticky="sw")
-        self.date_button_from = customtkinter.CTkButton(
+        self.stats_date_from = customtkinter.CTkButton(
             self.stats_numbers.tab("Stats"),
             text=self.set_start_date('expenses'),
             command=lambda: self.date_select(
@@ -76,7 +76,7 @@ class App(customtkinter.CTk):
             font=customtkinter.CTkFont(
                 size=14),
             border_width=2)
-        self.date_button_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
+        self.stats_date_from.grid(row=0, column=0, padx=(180, 10), pady=10, sticky="sw")
         # self.date_button_from.configure(text=dt.datetime.now().strftime("%Y-%m-%d"))
         self.stats_date_to = customtkinter.CTkLabel(self.stats_numbers.tab("Stats"), text="To:", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.stats_date_to.grid(row=0, column=0, padx=(330, 20), pady=10, sticky="sw")
@@ -419,16 +419,22 @@ class App(customtkinter.CTk):
 
     def sort_treeview(self, sort_by: str, table: str, sort_category: customtkinter.CTkOptionMenu):
         sort_w = sort_category.get()
+        self.toplevel_window.withdraw()
+        self.toplevel_window = None
         if table == 'expenses':
             history = self.expenses_history
+            date_from = self.expenses_date_from_btn.cget("text")
+            date_to = self.expenses_date_to_btn.cget("text")
         elif table == 'income':
             history = self.income_history
+            date_from = self.income_date_from_btn.cget("text")
+            date_to = self.income_date_to_btn.cget("text")
         for i in history.get_children():
             history.delete(i)
         if sort_by == 'type':
-            res = self.db_cur.execute(f"SELECT * FROM {table} DESC WHERE type='{sort_w}'")
+            res = self.db_cur.execute(f"SELECT * FROM {table} DESC WHERE type='{sort_w}' AND date BETWEEN date('{date_from}') AND date('{date_to}')")
         elif sort_by == 'price':
-            res = self.db_cur.execute(f"SELECT * FROM {table} ORDER BY price DESC")
+            res = self.db_cur.execute(f"SELECT * FROM {table} ORDER BY price DESC WHERE date BETWEEN date('{date_from}') AND date('{date_to}')")
         datas = res.fetchall()
         self.history_table_format(datas, history)
 
@@ -455,7 +461,7 @@ class App(customtkinter.CTk):
             sort_reset.grid(row=2, column=0, padx=(35, 20), pady=20)
 
     def gui_print(self, table: str):
-        date_from = self.date_button_from.cget("text")
+        date_from = self.stats_date_from.cget("text")
         date_to = self.stats_date_to.cget("text")
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         if table == 'income':
@@ -472,8 +478,8 @@ class App(customtkinter.CTk):
             self.stat_expenses(main_curr, date_from, date_to)
             self.stat_subs(main_curr, date_from, date_to)
 
-    def currency_format(self, label: customtkinter.CTkLabel, main_curr: float, operator: str, numbers: int):
-        if main_curr in ('Ft', '€'):
+    def currency_format(self, label: customtkinter.CTkLabel, main_curr: str, operator: str, numbers: int):
+        if main_curr in ['Ft', '€']:
             label.configure(text=f"{operator}{abs(float(numbers)):,} {main_curr}".replace(',', ' '))
         else:
             label.configure(text=f"{operator}{main_curr} {abs(float(numbers)):,}".replace(',', ' '))
@@ -489,41 +495,51 @@ class App(customtkinter.CTk):
         self.db_con.commit()
         self.gui_print('all')
 
-    def stat_income(self, main_curr: str, from_date: str, to_date: str):
-        res = self.db_cur.execute(f"SELECT SUM(price) FROM income WHERE date BETWEEN date('{from_date}') AND date('{to_date}')")
+    def stat_income(self, main_curr: str, date_from: str, date_to: str):
+        res = self.db_cur.execute(f"SELECT SUM(price) FROM income WHERE date BETWEEN date('{date_from}') AND date('{date_to}')")
         income = res.fetchone()[0]
-        if income is None:
-            income = 'N/A'
         label = self.stats_income_label
         operator = ''
-        self.currency_format(label, main_curr, operator, income)
+        if income is None:
+            income = 'N/A'
+            label.configure(text=f"{income}")
+        else:
+            self.currency_format(label, main_curr, operator, income)
         return income
 
-    def stat_expenses(self, main_curr: str, from_date: str, to_date: str):
-        res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{from_date}') AND date('{to_date}') AND frequency='One time'")
+    def stat_expenses(self, main_curr: str, date_from: str, date_to: str):
+        res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{date_from}') AND date('{date_to}') AND frequency='One time'")
         expenses = res.fetchone()[0]
-        if expenses is None:
-            expenses = 'N/A'
         label = self.stats_expenses_label
         operator = '-'
-        self.currency_format(label, main_curr, operator, expenses)
+        if expenses is None:
+            expenses = 'N/A'
+            label.configure(text=f"{expenses}")
+        else:
+            self.currency_format(label, main_curr, operator, expenses)
         return expenses
 
-    def stat_subs(self, main_curr: str, from_date: str, to_date: str):
-        res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{from_date}') AND date('{to_date}') AND frequency='Monthly' OR frequency='Yearly'")
+    def stat_subs(self, main_curr: str, date_from: str, date_to: str):
+        res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{date_from}') AND date('{date_to}') AND frequency='Monthly' OR frequency='Yearly'")
         subs = res.fetchone()[0]
-        if subs is None:
-            subs = 'N/A'
         label = self.stats_subs_cost_label
         operator = '-'
-        self.currency_format(label, main_curr, operator, subs)
+        if subs is None:
+            subs = 'N/A'
+            label.configure(text=f"{subs}")
+        else:
+            self.currency_format(label, main_curr, operator, subs)
         return subs
 
-    def stat_balance(self, main_curr: str, from_date: str, to_date: str):
-        income = self.stat_income(main_curr, from_date, to_date)
-        expenses = self.stat_expenses(main_curr, from_date, to_date)
-        subs = self.stat_subs(main_curr, from_date, to_date)
-        balance = income - expenses - subs
+    def stat_balance(self, main_curr: str, date_from: str, date_to: str):
+        income = self.stat_income(main_curr, date_from, date_to)
+        expenses = self.stat_expenses(main_curr, date_from, date_to)
+        subs = self.stat_subs(main_curr, date_from, date_to)
+        stats = [income, expenses, subs]
+        for i in range(len(stats)):
+            if stats[i] == "N/A":
+                stats[i] = 0
+        balance = float(stats[0]) - float(stats[1]) - float(stats[2])
         label = self.stats_curr_balance_label
         if balance < 0:
             operator = '-'
@@ -534,7 +550,7 @@ class App(customtkinter.CTk):
     def date_select(self, frame: str, which_date: str):
         if frame == "stats":
             if which_date == "from":
-                date = self.date_button_from
+                date = self.stats_date_from
             elif which_date == "to":
                 date = self.stats_date_to
         elif frame == "income":
@@ -576,14 +592,14 @@ class App(customtkinter.CTk):
 
     def refresh_range_stats(self):
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
-        date_from = self.date_button_from.cget("text")
+        date_from = self.stats_date_from.cget("text")
         date_to = self.stats_date_to.cget("text")
         self.stat_income(main_curr, date_from, date_to)
         self.stat_expenses(main_curr, date_from, date_to)
         self.stat_subs(main_curr, date_from, date_to)
         self.stat_balance(main_curr, date_from, date_to)
-        self.gen_expense_chart()
-        self.gen_income_chart()
+        self.gen_expense_chart(date_from, date_to)
+        self.gen_income_chart(date_from, date_to)
 
     def refresh_range_histories(self, table: str):
         if table == 'expenses':
@@ -598,8 +614,8 @@ class App(customtkinter.CTk):
             history.delete(i)
         self.history_tables(table, date_from, date_to)
 
-    def gen_expense_chart(self):
-        res = self.db_cur.execute("SELECT COUNT(type), type FROM expenses GROUP BY type")
+    def gen_expense_chart(self, date_from: str, date_to: str):
+        res = self.db_cur.execute(f"SELECT COUNT(type), type FROM expenses WHERE date BETWEEN date('{date_from}') AND date('{date_to}') GROUP BY type")
         datas = res.fetchall()
         cat_sum = 0
         pie_exp_labels = []
@@ -622,6 +638,7 @@ class App(customtkinter.CTk):
         pie_chart_canvas = FigureCanvasTkAgg(figure, pie_charts_canvas)
         for text in pie_chart.texts:  # type: ignore
             text.set_color('white')
+        pie_chart.set_title("Expenses by category", color="white")
         pie_chart.set_facecolor("#212121")
         pie_chart.tick_params(axis='x', colors='white')
         pie_chart.tick_params(axis='y', colors='white')
@@ -631,8 +648,8 @@ class App(customtkinter.CTk):
         pie_chart_canvas.get_tk_widget().grid(row=1, column=0, padx=20, sticky="nsew")
         pie_charts_canvas.config(highlightthickness=0)
 
-    def gen_income_chart(self):
-        res = self.db_cur.execute("SELECT COUNT(type), type FROM income GROUP BY type")
+    def gen_income_chart(self, date_from: str, date_to: str):
+        res = self.db_cur.execute(f"SELECT COUNT(type), type FROM income WHERE date BETWEEN date('{date_from}') AND date('{date_to}') GROUP BY type")
         datas = res.fetchall()
         cat_sum = 0
         pie_inc_labels = []
@@ -655,6 +672,7 @@ class App(customtkinter.CTk):
         pie_chart_canvas = FigureCanvasTkAgg(figure, pie_charts_canvas)
         for text in pie_chart.texts:  # type: ignore
             text.set_color('white')
+        pie_chart.set_title("Income by Category", color="white")
         pie_chart.set_facecolor("#212121")
         pie_chart.tick_params(axis='x', colors='white')
         pie_chart.tick_params(axis='y', colors='white')
@@ -844,6 +862,9 @@ if __name__ == "__main__":
     app = App()
     app.mainloop()
 
+
+# pyright: reportUnknownArgumentType=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportMatchNotExhaustive=false
 # pyright: reportUnboundVariable=false
 # pyright: reportUnknownVariableType=false
