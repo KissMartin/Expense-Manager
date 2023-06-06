@@ -300,6 +300,13 @@ class App(customtkinter.CTk):
 
         self.select_frame_by_name("Expenses")
 
+    def exchange_rates(self, base_curr: str, new_curr: str):
+        if new_curr != base_curr:
+            res = self.db_cur.execute(f"SELECT value FROM {base_curr} WHERE new_curr='{new_curr}'")
+            exchange = res.fetchone()[0]
+            return exchange
+        return 1
+
     def set_start_date(self, table: str) -> str:
         if table == "stats":
             res_exp = self.db_cur.execute("SELECT MIN(date) FROM expenses")
@@ -364,23 +371,23 @@ class App(customtkinter.CTk):
             sort_reset = customtkinter.CTkButton(self.toplevel_window, text="Reset", command=lambda: self.refresh_range_histories(table))
             sort_reset.grid(row=2, column=0, padx=(35, 20), pady=20)
 
-    def gui_print(self, table: str):
+    def gui_print(self, table: str, exchange_rate: float):
         date_from = self.stats_date_from.cget("text")
         date_to = self.stats_date_to.cget("text")
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
         if table == 'income':
-            self.stat_income(main_curr, date_from, date_to)
+            self.stat_income(main_curr, date_from, date_to, exchange_rate)
         elif table == 'balance':
-            self.stat_balance(main_curr, date_from, date_to)
+            self.stat_balance(main_curr, date_from, date_to, exchange_rate)
         elif table == 'expenses':
-            self.stat_expenses(main_curr, date_from, date_to)
+            self.stat_expenses(main_curr, date_from, date_to, exchange_rate)
         elif table == 'subs':
-            self.stat_subs(main_curr, date_from, date_to)
+            self.stat_subs(main_curr, date_from, date_to, exchange_rate)
         else:
-            self.stat_income(main_curr, date_from, date_to)
-            self.stat_balance(main_curr, date_from, date_to)
-            self.stat_expenses(main_curr, date_from, date_to)
-            self.stat_subs(main_curr, date_from, date_to)
+            self.stat_income(main_curr, date_from, date_to, exchange_rate)
+            self.stat_balance(main_curr, date_from, date_to, exchange_rate)
+            self.stat_expenses(main_curr, date_from, date_to, exchange_rate)
+            self.stat_subs(main_curr, date_from, date_to, exchange_rate)
 
     def currency_format(self, label: customtkinter.CTkLabel, main_curr: str, operator: str, numbers: int):
         if main_curr in ['Ft', '€']:
@@ -394,10 +401,13 @@ class App(customtkinter.CTk):
         return main
 
     def main_curr_refresh(self):
+        main_curr = self.main_curr_type().split(' ')[1].removeprefix('[').removesuffix(']')
         self.db_cur.execute("UPDATE currencies SET main_curr=0")
+        new_curr = self.currency_entry.get().split(' ')[1].removeprefix('[').removesuffix(']')
         self.db_cur.execute(f"UPDATE currencies SET main_curr=1 WHERE curr_type='{self.currency_entry.get()}'")
         self.db_con.commit()
-        self.gui_print('all')
+        exchange_rate = self.exchange_rates(main_curr, new_curr)
+        self.gui_print('all', exchange_rate)
 
     def monthly_yearly_stat(self, table: str, date_from: str, date_to: str):
         if table == 'income':
@@ -431,7 +441,7 @@ class App(customtkinter.CTk):
             yearly = 0
         return monthly, yearly
 
-    def stat_income(self, main_curr: str, date_from: str, date_to: str):
+    def stat_income(self, main_curr: str, date_from: str, date_to: str, exchange_rate: float):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM income WHERE date BETWEEN date('{date_from}') AND date('{date_to}') AND frequency='One time'")
         income = res.fetchone()[0]
         label = self.stats_income_label
@@ -440,12 +450,12 @@ class App(customtkinter.CTk):
         operator = ''
         if income is None:
             income = 'N/A'
-            label.configure(text=f"{income}")
+            label.configure(text=f"{income * exchange_rate}")
         else:
             self.currency_format(label, main_curr, operator, income)
         return income
 
-    def stat_expenses(self, main_curr: str, date_from: str, date_to: str):
+    def stat_expenses(self, main_curr: str, date_from: str, date_to: str, exchange_rate: float):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{date_from}') AND date('{date_to}') AND frequency='One time'")
         expenses = res.fetchone()[0]
         label = self.stats_expenses_label
@@ -454,27 +464,26 @@ class App(customtkinter.CTk):
         operator = '-'
         if expenses is None:
             expenses = 'N/A'
-            label.configure(text=f"{expenses}")
+            label.configure(text=f"{expenses * exchange_rate}")
         else:
             self.currency_format(label, main_curr, operator, expenses)
         return expenses
 
-    def stat_subs(self, main_curr: str, date_from: str, date_to: str):
+    def stat_subs(self, main_curr: str, date_from: str, date_to: str, exchange_rate: float):
         res = self.db_cur.execute(f"SELECT SUM(price) FROM expenses WHERE date BETWEEN date('{date_from}') AND date('{date_to}') AND frequency='Monthly' OR frequency='Yearly'")
         subs = res.fetchone()[0]
         label = self.stats_subs_cost_label
         operator = '-'
         if subs is None:
             subs = 'N/A'
-            label.configure(text=f"{subs}")
+            label.configure(text=f"{subs * exchange_rate}")
         else:
             self.currency_format(label, main_curr, operator, subs)
         return subs
 
-    def stat_balance(self, main_curr: str, date_from: str, date_to: str):
-        income = self.stat_income(main_curr, date_from, date_to)
-        expenses = self.stat_expenses(main_curr, date_from, date_to)
-        subs = self.stat_subs(main_curr, date_from, date_to)
+    def stat_balance(self, main_curr: str, date_from: str, date_to: str, exchange_rate: float):
+        income = self.stat_income(main_curr, date_from, date_to, exchange_rate)
+        expenses = self.stat_expenses(main_curr, date_from, date_to, exchange_rate)
         stats = [income, expenses]
         for i in range(len(stats)):
             if stats[i] == "N/A":
@@ -532,12 +541,13 @@ class App(customtkinter.CTk):
 
     def refresh_range_stats(self):
         main_curr = self.curr_type_to_symbol(self.main_curr_type())
+        exchange_rate = self.exchange_rates(main_curr, main_curr)
         date_from = self.stats_date_from.cget("text")
         date_to = self.stats_date_to.cget("text")
-        self.stat_income(main_curr, date_from, date_to)
-        self.stat_expenses(main_curr, date_from, date_to)
-        self.stat_subs(main_curr, date_from, date_to)
-        self.stat_balance(main_curr, date_from, date_to)
+        self.stat_income(main_curr, date_from, date_to, exchange_rate)
+        self.stat_expenses(main_curr, date_from, date_to, exchange_rate)
+        self.stat_subs(main_curr, date_from, date_to, exchange_rate)
+        self.stat_balance(main_curr, date_from, date_to, exchange_rate)
         self.gen_expense_chart(date_from, date_to)
         self.gen_income_chart(date_from, date_to)
 
