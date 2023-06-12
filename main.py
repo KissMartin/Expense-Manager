@@ -401,9 +401,7 @@ class App(customtkinter.CTk):
         return main
 
     def main_curr_refresh(self):
-        main_curr = self.main_curr_type().split(' ')[1].removeprefix('[').removesuffix(']')
         self.db_cur.execute("UPDATE currencies SET main_curr=0")
-        new_curr = self.currency_entry.get().split(' ')[1].removeprefix('[').removesuffix(']')
         self.db_cur.execute(f"UPDATE currencies SET main_curr=1 WHERE curr_type='{self.currency_entry.get()}'")
         self.db_con.commit()
         self.gui_print('all')
