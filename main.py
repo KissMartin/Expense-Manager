@@ -799,30 +799,6 @@ class App(customtkinter.CTk):
             self.income_date_entry.delete(0, 'end')
             self.income_date_entry.insert(0, f'{date:%Y-%m-%d}')
 
-    # Validate fucntion for Subs & Sum menu
-    # def validate(self):
-    #     entry = self.sub_n_sum_income_entry
-    #     warning = self.sub_n_sum_warning_income
-    #     numbers_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    #     if len(entry.get()) <= 10:
-    #         for i in entry.get().lower():
-    #             if i not in numbers_list:
-    #                 entry.configure(fg_color="#990000")
-    #                 warning.configure(text="This value is incorrect!")
-    #                 break
-    #             entry.configure(state="disabled", fg_color="#006600")
-    #             warning.configure(text="")
-    #     else:
-    #         entry.configure(fg_color="#990000")
-    #         warning.configure(text="This value is incorrect!")
-
-    # # Change function for sub_n_sum_frame
-    # def change(self):
-    #     entry = self.sub_n_sum_income_entry
-    #     if entry.cget("state") == "disabled":
-    #         entry.configure(state="normal")
-    #         entry.configure(fg_color="#343638")
-
 
 if __name__ == "__main__":
     app = App()
