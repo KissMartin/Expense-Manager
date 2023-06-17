@@ -25,3 +25,10 @@ This project is a simple "example" of how the app will work and what kind of fea
 - [ ] Add a settings menu
 - [ ] Add a way to change the theme of the app
 - [ ] Liquidity feature
+
+## Known Issues
+
+- Expenses and incomes are not based on API calls, they are based on a local database
+- The app is not fully finished yet
+- The app is not fully tested
+- The app has resizebility issues, it is not responsive due to tkinter's limitations
