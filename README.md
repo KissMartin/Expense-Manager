@@ -8,9 +8,9 @@ This project is a simple "example" of how the app will work and what kind of fea
 
 - Manage your expenses/incomes
 - Have a clear view of your expenses/incomes broken down by statistics
- - Charts
- - Categories
- - Time
+  - Charts
+  - Categories
+  - Time
 
 ## How to install and run
 
